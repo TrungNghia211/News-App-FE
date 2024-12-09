@@ -1,6 +1,11 @@
+import Header from "../../components/Header/page";
+import MenuComponent from "../../components/Menu/page";
 
 export default function Home() {
   return (
-    <div>Homepage News App</div>
+    <div className="flex flex-col w-full min-w-[100px]">
+      <Header />
+      <MenuComponent />
+    </div>
   );
 }
