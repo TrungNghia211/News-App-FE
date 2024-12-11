@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { MenuOutlined, CaretDownOutlined } from "@ant-design/icons";
 import Link from "next/link";
-import { apiFetch } from "../../src/utils/api";
+import { apiFetch } from "../../utils/api";
 
 const MenuComponent = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
