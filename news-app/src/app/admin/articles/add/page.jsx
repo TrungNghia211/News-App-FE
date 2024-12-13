@@ -9,12 +9,12 @@ const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 
 const ArticlesAdd = () => {
-  const [fetchedCategories, setFetchedCategories] = useState([]); // Khởi tạo là mảng rỗng
-  const [fetchedSubCategories, setFetchedSubCategories] = useState([]); // Lưu trữ các subcategories
+  const [fetchedCategories, setFetchedCategories] = useState([]);
+  const [fetchedSubCategories, setFetchedSubCategories] = useState([]);
   const [title, setTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [category, setCategory] = useState(null); // Khởi tạo là null
-  const [subCategory, setSubCategory] = useState("None");
+  const [category, setCategory] = useState(null);
+  const [subCategory, setSubCategory] = useState("");
   const [content, setContent] = useState("");
   const [imageSource, setImageSource] = useState("file");
   const router = useRouter();
@@ -24,10 +24,10 @@ const ArticlesAdd = () => {
     const fetchCategories = async () => {
       try {
         const res = await apiFetch("/api/categories", "GET");
-        const categories = res.data || []; // Đảm bảo là mảng
+        const categories = res;
         setFetchedCategories(categories);
         if (categories.length > 0) {
-          setCategory(categories[0]); // Chọn category mặc định nếu có
+          setCategory(categories[0]);
         }
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -36,16 +36,15 @@ const ArticlesAdd = () => {
     fetchCategories();
   }, []);
 
-  // Lấy subcategories khi category thay đổi
   useEffect(() => {
     if (category) {
       const fetchSubCategories = async () => {
         try {
           const res = await apiFetch(
-            `/api/subcategories?category_id=${category.id}`,
+            `/api/subcategories/category/${category.id}`,
             "GET"
           );
-          const subcategories = res.data || [];
+          const subcategories = res || [];
           setFetchedSubCategories(subcategories);
         } catch (error) {
           console.error("Failed to fetch subcategories:", error);
@@ -53,7 +52,7 @@ const ArticlesAdd = () => {
       };
       fetchSubCategories();
     }
-  }, [category]); // Chỉ gọi API khi category thay đổi
+  }, [category]);
 
   const handleAddArticle = async (e) => {
     e.preventDefault();
@@ -70,42 +69,21 @@ const ArticlesAdd = () => {
         content: content,
         category: category.name,
         subCategory: subCategory === "None" ? "" : subCategory,
-        author: {
-          id: user.uid,
-          name: userData.username,
-        },
+        // author: {
+        //   id: user.uid,
+        //   name: userData.username,
+        // },
       };
-      const res = await apiFetch("/api/articles/new", "POST", payload);
+      console.log("Payload:", payload);
+      const res = await apiFetch("/api/articles", "POST", payload);
       router.push("/admin/articles");
     } catch (error) {
       console.error("Failed to add article:", error);
     }
   };
-
   const handleClose = () => {
     router.push("/admin/articles");
   };
-
-  const handleChangeImageSource = (e) => {
-    if (e.target.value === "url") {
-      setImageSource("url");
-    } else {
-      setImageSource("file");
-    }
-  };
-
-  const handleCategoryChange = (e) => {
-    const selectedCategory = fetchedCategories.find(
-      (el) => el.name === e.target.value
-    );
-    setCategory(selectedCategory);
-    setSubCategory("None"); // Reset subcategory khi thay đổi category
-  };
-
-  const handleSubCategoryChange = (e) => {
-    setSubCategory(e.target.value);
-  };
-
   return (
     <>
       <Header />
@@ -191,19 +169,20 @@ const ArticlesAdd = () => {
             <label className="block mb-2">Select Category:</label>
             <select
               value={category ? category.name : ""}
-              onChange={handleCategoryChange}
+              onChange={(e) => {
+                const category = fetchedCategories.find(
+                  (el) => el.name === e.target.value
+                );
+                setCategory(category);
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             >
-              {fetchedCategories && fetchedCategories.length > 0 ? (
-                fetchedCategories.map((category) => (
-                  <option key={category.id} value={category.name}>
-                    {category.name}
-                  </option>
-                ))
-              ) : (
-                <option disabled>No categories available</option>
-              )}
+              {fetchedCategories?.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -211,12 +190,13 @@ const ArticlesAdd = () => {
             <label className="block mb-2">Select Subcategory:</label>
             <select
               value={subCategory}
-              onChange={handleSubCategoryChange}
+              onChange={(e) => setSubCategory(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded"
+              required
             >
               {fetchedSubCategories.length > 0 ? (
                 fetchedSubCategories.map((subCategory) => (
-                  <option key={subCategory.sub} value={subCategory.sub}>
+                  <option key={subCategory.id} value={subCategory.sub}>
                     {subCategory.sub}
                   </option>
                 ))
@@ -237,6 +217,8 @@ const ArticlesAdd = () => {
           </div>
 
           <div className="flex flex-col items-end mt-10 space-y-2">
+            <button className=" py-2 px-4 rounded"></button>
+            <button className=" py-2 px-4 rounded"></button>
             <div className="flex justify-end space-x-2">
               <button
                 type="submit"

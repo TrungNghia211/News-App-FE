@@ -17,21 +17,28 @@ const ArticlesEdit = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [imageSource, setImageSource] = useState("url");
   const [category, setCategory] = useState("");
+  const [categoryValue, setCategoryValue] = useState("");
+  const [subsubcategoryValue, setSubSubCategoryValue] = useState("");
+  const [subCategoryValue, setSubCategoryValue] = useState("");
   const [fetchedCategories, setFetchedCategories] = useState([]);
+  const [fetchedSubcategories, setFetchedSubcategories] = useState([]);
   const [subCategory, setSubCategory] = useState("None");
   const [content, setContent] = useState("");
+  const [subOptions, setSubOptions] = useState([]);
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
         const res = await apiFetch(`/api/articles/${articleId}`, "GET");
-        const articleData = res.data;
+        console.log("res", res);
 
+        const articleData = res;
         setArticle(articleData);
         setTitle(articleData.title);
-        setImageUrl(articleData.imageUrl);
-        setCategory(articleData.category);
-        setSubCategory(articleData.subCategory || "None");
+        setImageUrl(articleData.image_url);
+        setImageSource(articleData.image_file);
+        setCategory(articleData.category_id);
+        setSubCategory(articleData.subcategory_id);
         setContent(articleData.content);
       } catch (error) {
         console.error("Failed to fetch article:", error);
@@ -41,7 +48,7 @@ const ArticlesEdit = () => {
     const fetchCategories = async () => {
       try {
         const res = await apiFetch("/api/categories", "GET");
-        setFetchedCategories(res.data);
+        setFetchedCategories(res);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
@@ -49,12 +56,7 @@ const ArticlesEdit = () => {
 
     fetchArticle();
     fetchCategories();
-  }, []);
-
-  const selectedCategoryData = useMemo(() => {
-    return (fetchedCategories || []).find((el) => el.name === category) || {};
-  }, [category, fetchedCategories]);
-
+  }, [articleId]);
   const handleEditArticle = async (e) => {
     e.preventDefault();
 
@@ -64,26 +66,75 @@ const ArticlesEdit = () => {
       category,
       subCategory,
       content,
-      author: {
-        id: article?.author?.id,
-        name: article?.author?.name,
-      },
       updatedAt: new Date().toISOString(),
     };
 
     try {
-      await apiFetch(`/api/articles/${articleId}`, "PUT", updatedArticle);
-      success("Update Success");
-      router.push("/admin/articles");
-    } catch (error) {
-      error("Update Error");
+      const res = await apiFetch(
+        `/api/articles/${articleId}/`,
+        "PUT",
+        updatedArticle
+      );
+
+      // router.push("/admin/articles");
+      console.log(updatedArticle);
+      console.log("Article updated successfully:", res);
+    } catch (error) {}
+  };
+  useEffect(() => {
+    if (fetchedCategories) {
+      const check = fetchedCategories.filter((cat) => cat.id === category);
+      setCategoryValue(check[0]?.name);
+      apiFetch(`/api/subcategories/category/${check[0]?.id}`)
+        .then((res) => {
+          if (res) {
+            const arrSub = res.map((cat) => cat.sub);
+            setSubOptions(res);
+          }
+        })
+        .catch((err) => {});
+    }
+  }, [category]);
+  useEffect(() => {
+    if (fetchedSubcategories) {
+      const check = fetchedSubcategories.filter(
+        (sub) => sub.id === subCategory
+      );
+    }
+  }, [subCategory, fetchedSubcategories]);
+
+  const handleCategoryChange = (e) => {
+    const selectedCategory = fetchedCategories.find(
+      (cat) => cat.name === e.target.value
+    );
+
+    if (selectedCategory) {
+      setCategory(selectedCategory.id);
+      setCategoryValue(selectedCategory.name);
+    } else {
+      setCategoryValue("");
     }
   };
 
+  const handleSubCategoryChange = (e) => {
+    const subCategoryOptions = fetchedCategories.find(
+      (sub) => sub.name === e.target.value
+    );
+    if (subCategoryOptions) {
+      setSubCategory(subCategoryOptions.id);
+      setSubCategoryValue(subCategoryOptions.name);
+    } else {
+      setSubCategoryValue("");
+    }
+  };
   const handleClose = () => {
     router.push("/admin/articles");
   };
+  const selectedCategoryData = useMemo(() => {
+    return fetchedCategories.find((el) => el.name === category) || {};
+  }, [category, fetchedCategories]);
 
+  const subCategoryOptions = selectedCategoryData.children || [];
   return (
     <div>
       <Header />
@@ -162,12 +213,11 @@ const ArticlesEdit = () => {
               />
             )}
           </div>
- 
           <div>
             <label className="block mb-2">Select Category:</label>
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              value={categoryValue}
+              onChange={handleCategoryChange}
               className="w-full p-2 border border-gray-300 rounded"
               required
             >
@@ -178,23 +228,19 @@ const ArticlesEdit = () => {
               ))}
             </select>
           </div>
-
           <div>
             <label className="block mb-2">Select Subcategory:</label>
             <select
               value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
+              onChange={handleSubCategoryChange}
               className="w-full p-2 border border-gray-300 rounded"
             >
-              <option value="None">None</option>
-              {selectedCategoryData?.children?.map((sub, index) => (
-                <option
-                  key={`${selectedCategoryData.name}-${index}`}
-                  value={sub}
-                >
-                  {sub}
-                </option>
-              ))}
+              {subOptions.length > 0 &&
+                subOptions.map((sub) => (
+                  <option key={sub.id} value={sub.sub}>
+                    {sub.sub}
+                  </option>
+                ))}
             </select>
           </div>
 

@@ -30,14 +30,12 @@ const FormAddEdit = ({ form, currentCategory, onSave }) => {
     };
 
     try {
-      // Gửi yêu cầu POST để tạo category mới
       const categoryData = await apiFetch(
         "/api/categories",
         "POST",
         categoryPayload
       );
 
-      // Sau khi tạo category thành công, gọi onSave để cập nhật UI
       onSave();
     } catch (error) {
       console.error("Error saving category:", error);
