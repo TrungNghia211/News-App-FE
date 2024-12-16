@@ -3,43 +3,69 @@ import React, { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../../../components/Header/page";
-import { apiFetch } from "../../../../../../utils/api";
 import "react-quill/dist/quill.snow.css";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
-const ArticlesEdit = () => {
+interface Category {
+  id: number;
+  name: string;
+  children: SubCategory[];
+}
+
+interface SubCategory {
+  id: number;
+  sub: string;
+}
+
+interface Article {
+  id: number;
+  title: string;
+  image_url: string;
+  image_file: string;
+  category_id: number;
+  subcategory_id: number;
+  content: string;
+  author: string;
+}
+
+const ArticlesEdit: React.FC = () => {
   const router = useRouter();
   const params = useParams();
+  const [loading, setLoading] = useState(false);
   const articleId = params.id;
-  const [article, setArticle] = useState(null);
-  const [title, setTitle] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [imageSource, setImageSource] = useState("url");
-  const [category, setCategory] = useState("");
-  const [categoryValue, setCategoryValue] = useState("");
-  const [subsubcategoryValue, setSubSubCategoryValue] = useState("");
-  const [subCategoryValue, setSubCategoryValue] = useState("");
-  const [fetchedCategories, setFetchedCategories] = useState([]);
-  const [fetchedSubcategories, setFetchedSubcategories] = useState([]);
-  const [subCategory, setSubCategory] = useState("None");
-  const [content, setContent] = useState("");
-  const [subOptions, setSubOptions] = useState([]);
+
+  const [article, setArticle] = useState<Article | null>(null);
+  const [title, setTitle] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageSource, setImageSource] = useState<string>("url");
+  const [category, setCategory] = useState<number>(0);
+  const [categoryValue, setCategoryValue] = useState<string>("");
+  const [subCategory, setSubCategory] = useState<number>(0);
+  const [content, setContent] = useState<string>("");
+  const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
+  const [subOptions, setSubOptions] = useState<SubCategory[]>([]);
+
 
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await apiFetch(`/api/articles/${articleId}`, "GET");
-        console.log("res", res);
-
-        const articleData = res;
-        setArticle(articleData);
-        setTitle(articleData.title);
-        setImageUrl(articleData.image_url);
-        setImageSource(articleData.image_file);
-        setCategory(articleData.category_id);
-        setSubCategory(articleData.subcategory_id);
-        setContent(articleData.content);
+        const res = await fetch(`http://127.0.0.1:8000/api/articles/${articleId}/`);
+        
+        if (res.ok) {
+          const articleData: Article = await res.json();
+          console.log("articleData:", articleData);
+          
+          setArticle(articleData);
+          setTitle(articleData.title);
+          setImageUrl(articleData.image_url);
+          setImageSource(articleData.image_file);
+          setCategory(articleData.category_id);
+          setSubCategory(articleData.subcategory_id);
+          setContent(articleData.content);
+        } else {
+          throw new Error("Failed to fetch article");
+        }
       } catch (error) {
         console.error("Failed to fetch article:", error);
       }
@@ -47,94 +73,101 @@ const ArticlesEdit = () => {
 
     const fetchCategories = async () => {
       try {
-        const res = await apiFetch("/api/categories", "GET");
-        setFetchedCategories(res);
+        const res = await fetch("http://127.0.0.1:8000/api/categories/");
+        if (res.ok) {
+          const categoriesData: Category[] = await res.json(); 
+          setFetchedCategories(categoriesData); 
+        } else {
+          throw new Error("Failed to fetch categories");
+        }
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
     };
 
+
     fetchArticle();
     fetchCategories();
   }, [articleId]);
-  const handleEditArticle = async (e) => {
+
+  useEffect(() => {
+    if (category) {
+      const selectedCategory = fetchedCategories.find((cat) => cat.id === category);
+      if (selectedCategory) {
+        setCategoryValue(selectedCategory.name);
+        setSubCategory(0); 
+        fetchSubCategories(selectedCategory.id);
+      }
+    }
+  }, [category, fetchedCategories]);
+
+  const fetchSubCategories = async (categoryId: number) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/subcategories/category/${categoryId}/`);
+      if (res.ok) {
+        const subCategories: SubCategory[] = await res.json();
+        setSubOptions(subCategories);
+      } else {
+        throw new Error("Failed to fetch subcategories");
+      }
+    } catch (err) {
+      console.error("Failed to fetch subcategories:", err);
+    }
+  };
+  const handleEditArticle = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);  
 
     const updatedArticle = {
-      title,
-      imageUrl,
-      category,
-      subCategory,
-      content,
-      updatedAt: new Date().toISOString(),
+      title: title || "Untitled Article",
+      image_url: imageUrl || "",
+      content: content || "<p>No content available</p>",
+      author: article?.author || "Unknown",
+      active: true,
+      category_id: category || 0,
+      subcategory_id: subCategory || 1,
     };
 
     try {
-      const res = await apiFetch(
-        `/api/articles/${articleId}/`,
-        "PUT",
-        updatedArticle
-      );
+      console.log("Sending updated article:", updatedArticle);
+      const res = await fetch(`http://127.0.0.1:8000/api/articles/${articleId}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedArticle),
+      });
 
-      // router.push("/admin/articles");
-      console.log(updatedArticle);
-      console.log("Article updated successfully:", res);
-    } catch (error) {}
+      if (res.ok) {
+        router.push("/admin/articles");
+      } else {
+        throw new Error("Failed to update article");
+      }
+    } catch (error) {
+      console.error("Failed to update article:", error);
+    } finally {
+      setLoading(false);  
+    }
   };
-  useEffect(() => {
-    if (fetchedCategories) {
-      const check = fetchedCategories.filter((cat) => cat.id === category);
-      setCategoryValue(check[0]?.name);
-      apiFetch(`/api/subcategories/category/${check[0]?.id}`)
-        .then((res) => {
-          if (res) {
-            const arrSub = res.map((cat) => cat.sub);
-            setSubOptions(res);
-          }
-        })
-        .catch((err) => {});
-    }
-  }, [category]);
-  useEffect(() => {
-    if (fetchedSubcategories) {
-      const check = fetchedSubcategories.filter(
-        (sub) => sub.id === subCategory
-      );
-    }
-  }, [subCategory, fetchedSubcategories]);
-
-  const handleCategoryChange = (e) => {
-    const selectedCategory = fetchedCategories.find(
-      (cat) => cat.name === e.target.value
-    );
-
+  
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCategory = fetchedCategories.find((cat) => cat.name === e.target.value);
     if (selectedCategory) {
       setCategory(selectedCategory.id);
-      setCategoryValue(selectedCategory.name);
-    } else {
-      setCategoryValue("");
     }
   };
 
-  const handleSubCategoryChange = (e) => {
-    const subCategoryOptions = fetchedCategories.find(
-      (sub) => sub.name === e.target.value
-    );
-    if (subCategoryOptions) {
-      setSubCategory(subCategoryOptions.id);
-      setSubCategoryValue(subCategoryOptions.name);
-    } else {
-      setSubCategoryValue("");
+  const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSubCategory = subOptions.find((sub) => sub.sub === e.target.value);
+    if (selectedSubCategory) {
+      setSubCategory(selectedSubCategory.id);
     }
   };
+
   const handleClose = () => {
     router.push("/admin/articles");
   };
-  const selectedCategoryData = useMemo(() => {
-    return fetchedCategories.find((el) => el.name === category) || {};
-  }, [category, fetchedCategories]);
 
-  const subCategoryOptions = selectedCategoryData.children || [];
   return (
     <div>
       <Header />
@@ -162,7 +195,10 @@ const ArticlesEdit = () => {
                 name="imageSource"
                 value="file"
                 checked={imageSource === "file"}
-                onChange={(e) => setImageSource(e.target.value)}
+                onChange={(e) => {
+                  setImageSource(e.target.value);
+                  setImageUrl("");
+                }}
               />
               <label htmlFor="fileUpload" className="ml-2">
                 Choose File
@@ -174,7 +210,10 @@ const ArticlesEdit = () => {
                 name="imageSource"
                 value="url"
                 checked={imageSource === "url"}
-                onChange={(e) => setImageSource(e.target.value)}
+                onChange={(e) => {
+                  setImageSource(e.target.value);
+                  setImageUrl("");
+                }}
                 className="ml-4"
               />
               <label htmlFor="urlUpload" className="ml-2">
@@ -187,11 +226,13 @@ const ArticlesEdit = () => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  const file = e.target.files[0];
+                  const file = e.target.files?.[0];
                   if (file) {
                     const reader = new FileReader();
-                    reader.onloadend = () => setImageUrl(reader.result);
+                    reader.onloadend = () => setImageUrl(reader.result as string);
                     reader.readAsDataURL(file);
+                  } else {
+                    setImageUrl("");
                   }
                 }}
               />
@@ -205,14 +246,18 @@ const ArticlesEdit = () => {
             )}
 
             {imageUrl && (
-              <img
-                src={imageUrl}
-                alt="Uploaded"
-                className="mt-2"
-                style={{ width: "100px" }}
-              />
+              <div className="mt-2">
+                <p>Image Preview:</p>
+                <img
+                  src={imageUrl}
+                  alt="Uploaded"
+                  className="mt-2"
+                  style={{ width: "100px" }}
+                />
+              </div>
             )}
           </div>
+
           <div>
             <label className="block mb-2">Select Category:</label>
             <select
@@ -254,8 +299,8 @@ const ArticlesEdit = () => {
           </div>
 
           <div className="flex flex-col items-end mt-10 space-y-2">
-            <button className=" py-2 px-4 rounded"></button>
-            <button className=" py-2 px-4 rounded"></button>
+          <button className=" py-2 px-4 rounded"></button>
+          <button className=" py-2 px-4 rounded"></button>
             <div className="flex justify-end space-x-2">
               <button
                 type="submit"

@@ -28,27 +28,28 @@ const HotArticles: React.FC = () => {
             },
           }
         );
-
+  
         if (!response.ok) throw new Error("Failed to fetch articles");
-
+  
         const data: Article[] = await response.json();
-
+  
         const currentTime = new Date();
         const oneWeekAgo = new Date(currentTime.getTime() - 7 * 24 * 60 * 60 * 1000);
-
+  
         const filteredArticles = data.filter((article) => {
           const updatedDate = new Date(article.updated_date);
-          return updatedDate >= oneWeekAgo;
+          return article.active === true && updatedDate >= oneWeekAgo;
         });
-
+  
         setArticles(filteredArticles);
       } catch (error) {
         console.error("Error fetching articles:", error);
       }
     };
-
+  
     fetchArticles();
   }, []);
+  
 
   return (
     <div className="w-full max-w-screen-sm mx-auto p-4">

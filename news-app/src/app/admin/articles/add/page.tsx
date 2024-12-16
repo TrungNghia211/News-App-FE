@@ -3,28 +3,59 @@ import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Header from "../../../../../components/Header/page";
-import { apiFetch } from "../../../../../utils/api";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface SubCategory {
+  id: number;
+  sub: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+}
+
 const ArticlesAdd = () => {
-  const [fetchedCategories, setFetchedCategories] = useState([]);
-  const [fetchedSubCategories, setFetchedSubCategories] = useState([]);
-  const [title, setTitle] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [category, setCategory] = useState(null);
-  const [subCategory, setSubCategory] = useState("");
-  const [content, setContent] = useState("");
-  const [imageSource, setImageSource] = useState("file");
+  const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
+  const [fetchedSubCategories, setFetchedSubCategories] = useState<SubCategory[]>([]);
+  const [title, setTitle] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [category, setCategory] = useState<Category | null>(null);
+  const [subCategory, setSubCategory] = useState<string>("");
+  const [content, setContent] = useState<string>("");
+  const [imageSource, setImageSource] = useState<string>("file");
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/user"); 
+        const userData: User = await res.json();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await apiFetch("/api/categories", "GET");
-        const categories = res;
+        const res = await fetch("http://127.0.0.1:8000/api/categories");
+        if (!res.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const categories: Category[] = await res.json();
         setFetchedCategories(categories);
         if (categories.length > 0) {
           setCategory(categories[0]);
@@ -40,11 +71,11 @@ const ArticlesAdd = () => {
     if (category) {
       const fetchSubCategories = async () => {
         try {
-          const res = await apiFetch(
-            `/api/subcategories/category/${category.id}`,
-            "GET"
-          );
-          const subcategories = res || [];
+          const res = await fetch(`/api/subcategories/category/${category.id}`);
+          if (!res.ok) {
+            throw new Error("Failed to fetch subcategories");
+          }
+          const subcategories: SubCategory[] = await res.json();
           setFetchedSubCategories(subcategories);
         } catch (error) {
           console.error("Failed to fetch subcategories:", error);
@@ -54,36 +85,45 @@ const ArticlesAdd = () => {
     }
   }, [category]);
 
-  const handleAddArticle = async (e) => {
+  const handleAddArticle = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const payload = {
         title: title,
         imageUrl: file
           ? await uploadImageToFirebase(file)
-              .then((url) => {
-                return url;
-              })
-              .catch()
+              .then((url) => url)
+              .catch(() => "")
           : imageUrl,
         content: content,
-        category: category.name,
+        category: category?.name || "",
         subCategory: subCategory === "None" ? "" : subCategory,
-        // author: {
-        //   id: user.uid,
-        //   name: userData.username,
-        // },
+        authorId: user?.id || 0, 
       };
+
       console.log("Payload:", payload);
-      const res = await apiFetch("/api/articles", "POST", payload);
-      router.push("/admin/articles");
+      const res = await fetch("/api/articles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        router.push("/admin/articles");
+      } else {
+        throw new Error("Failed to add article");
+      }
     } catch (error) {
       console.error("Failed to add article:", error);
     }
   };
+
   const handleClose = () => {
     router.push("/admin/articles");
   };
+
   return (
     <>
       <Header />
@@ -136,11 +176,11 @@ const ArticlesAdd = () => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  const file = e.target.files[0];
+                  const file = e.target.files?.[0];
                   if (file) {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                      setImageUrl(reader.result);
+                      setImageUrl(reader.result as string);
                     };
                     reader.readAsDataURL(file);
                   }
@@ -170,15 +210,15 @@ const ArticlesAdd = () => {
             <select
               value={category ? category.name : ""}
               onChange={(e) => {
-                const category = fetchedCategories.find(
+                const selectedCategory = fetchedCategories.find(
                   (el) => el.name === e.target.value
                 );
-                setCategory(category);
+                setCategory(selectedCategory || null);
               }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             >
-              {fetchedCategories?.map((category) => (
+              {fetchedCategories.map((category) => (
                 <option key={category.id} value={category.name}>
                   {category.name}
                 </option>
@@ -217,8 +257,6 @@ const ArticlesAdd = () => {
           </div>
 
           <div className="flex flex-col items-end mt-10 space-y-2">
-            <button className=" py-2 px-4 rounded"></button>
-            <button className=" py-2 px-4 rounded"></button>
             <div className="flex justify-end space-x-2">
               <button
                 type="submit"
