@@ -129,7 +129,6 @@ const ArticlesEdit: React.FC = () => {
     };
 
     try {
-      console.log("Sending updated article:", updatedArticle);
       const res = await fetch(`http://127.0.0.1:8000/api/articles/${articleId}/`, {
         method: "PUT",
         headers: {
