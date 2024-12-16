@@ -3,33 +3,51 @@
 import React, { useState, useEffect } from "react";
 import { MenuOutlined, CaretDownOutlined } from "@ant-design/icons";
 import Link from "next/link";
-import { apiFetch } from "../../utils/api";
 
-const MenuComponent = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [hoveredCategoryMenu, setHoveredCategoryMenu] = useState(null);
-  const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState(null);
-  const [categories, setCategories] = useState([]);
+interface SubCategory {
+  id: number;
+  name: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  children?: SubCategory[];
+}
+
+const MenuComponent: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [hoveredCategoryMenu, setHoveredCategoryMenu] = useState<number | null>(null);
+  const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    apiFetch("/api/categories", "GET")
-      .then((res) => {
-        setCategories(res);
-      })
-      .catch((err) => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/categories/");
+        
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        
+        const data: Category[] = await response.json();
+        setCategories(data);
+      } catch (err) {
         console.log("Error fetching categories:", err);
-      });
+      }
+    };
+
+    fetchCategories();
   }, []);
 
-  const handleCategoryClick = (e, categoryId) => {
-    // Handle category click (optional)
+  const handleCategoryClick = (e: React.MouseEvent<HTMLAnchorElement>, categoryId: number) => {
     e.preventDefault();
     console.log(`Category ${categoryId} clicked`);
   };
 
   return (
     <div className="xl:flex xl:min-h-full max-w-screen w-screen xl:justify-center xl:h-[35px] xl:border-y-[2px] px-4 xl:px-16">
-      <ul className="flex items-center justify-between w-full space-x-4 xl:flex-row xl:space-x-8 xl:flex ">
+      <ul className="flex items-center justify-between w-full space-x-4 xl:flex-row xl:space-x-8 xl:flex">
         <li className="z-[1] flex items-center relative">
           <MenuOutlined
             onClick={() => setIsModalOpen(!isModalOpen)}

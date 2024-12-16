@@ -15,14 +15,13 @@ const ArticleDetail = () => {
   useEffect(() => {
     const fetchArticleData = async () => {
       try {
-        const response = await apiFetch(`/api/articles/${id}`, "GET");
+        const response = await apiFetch(`/api/articles/${id}/`, "GET", null);
         if (response) {
           setArticleData(response);
         } else {
           setError("Failed to fetch article data.");
         }
       } catch (error) {
-        console.error("Error fetching article data:", error);
         setError("An error occurred while fetching article data.");
       } finally {
         setLoading(false);

@@ -52,6 +52,9 @@ const Header = () => {
     setSearchValue(e.target.value);
     onSearch(e.target.value);
   };
+  const handleLoginClick = () => {
+    router.push("/login");
+  };
 
   return (
     <header className="bg-white p-6">
@@ -75,6 +78,7 @@ const Header = () => {
           <Button
             type="white"
             icon={<UserOutlined />}
+            onClick={handleLoginClick}
             className="flex items-center space-x-2 text-xl hover:bg-yellow-400"
           >
             Đăng nhập
