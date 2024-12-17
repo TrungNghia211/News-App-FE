@@ -13,8 +13,9 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import envConfig from "@/config"
-import { useAppContext } from "@/app/AppProvider"
+import http, { clientSessionToken } from "@/lib/http"
+import { LoginResType } from "@/schemaValidations/auth.schema"
+import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
     username: z.string().trim().min(1, "Username is required"),
@@ -23,7 +24,7 @@ const formSchema = z.object({
 
 export default function LoginForm() {
 
-    const { setSessionToken } = useAppContext()
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -35,42 +36,11 @@ export default function LoginForm() {
 
     async function onSubmit(values: any) {
         try {
-            const result = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/api/token/`, {
-                method: 'POST',
-                body: JSON.stringify(values),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(async (res) => {
-                const payload = await res.json();
-                const data = {
-                    status: res.status,
-                    payload
-                }
-                if (!res.ok) {
-                    throw data;
-                }
-                return data;
-            })
-
-            const resultFromNextServer = await fetch('/api/auth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(result)
-            }).then(async (res) => {
-                const payload = await res.json();
-                const data = {
-                    status: res.status,
-                    payload
-                }
-                if (!res.ok) {
-                    throw data;
-                }
-                return data;
-            })
-            setSessionToken(resultFromNextServer.payload?.res?.payload?.access)
+            const result = await http.post<LoginResType>('/api/token/', JSON.stringify(values));
+            const resultFromNextServer = await http.post<any>('/api/auth', JSON.stringify(result), { baseUrl: '' });
+            // clientSessionToken.value = resultFromNextServer.payload?.res?.payload?.access;
+            // router.push('/profile');
+            console.log('result => ', result);
         } catch (error) {
             if (error.status === 401) {
                 form.setError('password', {

@@ -14,23 +14,22 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import envConfig from "@/config"
+import http from "@/lib/http"
 
 const formSchema = z.object({
     username: z.string().trim().min(2).max(256),
     email: z.string().email(),
     password: z.string().min(6).max(100),
     confirmPassword: z.string().min(6).max(100)
+}).strict().superRefine(({ confirmPassword, password }, ctx) => {
+    if (confirmPassword !== password) {
+        ctx.addIssue({
+            code: 'custom',
+            message: 'Passwords do not match',
+            path: ['confirmPassword']
+        })
+    }
 })
-    .strict()
-    .superRefine(({ confirmPassword, password }, ctx) => {
-        if (confirmPassword !== password) {
-            ctx.addIssue({
-                code: 'custom',
-                message: 'Passwords do not match',
-                path: ['confirmPassword']
-            })
-        }
-    })
 
 export default function RegisterForm() {
 
@@ -45,22 +44,15 @@ export default function RegisterForm() {
     })
 
     async function onSubmit(values: any) {
-        const result = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/users/`, {
-            method: 'POST',
-            body: JSON.stringify(values),
-            headers: {
-                'Content-Type': 'application/json'
+        try {
+            const result = await http.post<any>('/users/', JSON.stringify(values));
+        } catch (error) {
+            if (error.status === 400) {
+                form.setError('username', {
+                    type: 'manual',
+                    message: error.payload.username[0],
+                })
             }
-        })
-        const data = await result.json()
-
-        if (result.status === 400) {
-            form.setError('username', {
-                type: 'manual',
-                message: data.username[0],
-            })
-        } else {
-            console.log(result)
         }
     }
 
