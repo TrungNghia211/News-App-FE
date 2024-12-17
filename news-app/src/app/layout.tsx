@@ -24,7 +24,6 @@ export default async function RootLayout({ children }) {
 
   const cookieStore = await cookies()
   const sessionToken = cookieStore.get('sessionToken')
-  console.log('check => ', sessionToken)
 
   return (
     <html lang="en">
