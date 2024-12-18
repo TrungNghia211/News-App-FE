@@ -4,7 +4,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { Avatar, Card, Row, Col, Typography, Button, Modal, Input } from "antd";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Header from "../../../../components/Header/page";
+import Header from "../../components/Header/page";
 import debounce from "lodash.debounce";
 
 const { Meta } = Card;
@@ -116,12 +116,12 @@ export default function Articles() {
             className="mb-4"
           >
             <Card
-              className="w-full h-full flex flex-col justify-between"
+              className="w-full h-full flex flex-col justify-between "
               cover={
                 <img
                   alt={article.title}
                   src={article.image_url}
-                  className="max-h-44 object-cover"
+                  className="h-[180px] md:h-[200px] w-full md:w-[500px] object-cover object-cover"
                 />
               }
               actions={[
@@ -142,13 +142,18 @@ export default function Articles() {
                 </Button>,
               ]}
             >
-              <Link href={`/articles/${article.id}`}>
+              {/* <Link href={`/articles/${article.id}`}>
                 <Meta
                   title={
                     article.title.length > 50
                       ? `${article.title.slice(0, 50)}...`
                       : article.title
                   }
+                />
+              </Link> */}
+              <Link href={`/articles/${article.id}`}>
+                <Meta
+                  title={<div className="break-words">{article.title}</div>}
                 />
               </Link>
             </Card>

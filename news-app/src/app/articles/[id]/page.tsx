@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import MenuComponent from "../../../../components/Menu/page";
-import Header from "../../../../components/Header/page";
+import MenuComponent from "../../components/Menu/page";
+import Header from "../../components/Header/page";
 import CommentedForm from "../../components/page";
 import { clientSessionToken } from "@/lib/http";
 
@@ -80,9 +80,9 @@ const ArticleDetail = () => {
     <>
       <Header />
       <MenuComponent />
-      <div className="bg-gray-100 min-h-screen mt-6">
+      <div className="bg-gray-100 min-h-screen mt-10">
         <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
-          <div className="flex justify-between text-sm text-gray-500">
+          <div className="flex justify-between  text-gray-500 font-bold">
             <span></span>
             <span>Ngày Đăng: {created_date ? new Date(created_date).toLocaleDateString() : "N/A"}</span>
           </div>
@@ -91,7 +91,7 @@ const ArticleDetail = () => {
             className="text-lg text-gray-700 leading-relaxed mb-6"
             dangerouslySetInnerHTML={{ __html: content }}
           />
-          <div className="flex justify-between text-sm text-gray-500">
+          <div className="flex justify-between font-bold text-gray-500">
             <span>Lượt Xem: {views || 0}</span>
             <span>Tác Giả: {author ? author : "N/A"}</span> 
           </div>

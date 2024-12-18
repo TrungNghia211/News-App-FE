@@ -68,8 +68,8 @@ const HotArticles: React.FC = () => {
                 onClick={() => router.push(`/articles/${article.id}/`)}
                 dangerouslySetInnerHTML={{
                   __html:
-                    article.content.length > 150
-                      ? article.content.slice(0, 150) + "..."
+                    article.content.length > 120
+                      ? article.content.slice(0, 120) + "..."
                       : article.content,
                 }}
               />
@@ -82,7 +82,7 @@ const HotArticles: React.FC = () => {
               <img
                 alt="avatar"
                 src={article.image_url}
-                className="h-[120px] md:h-[180px] w-full md:w-[300px] object-cover"
+                className="h-40 object-cover"
               />
             </button>
           </div>

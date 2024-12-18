@@ -46,8 +46,8 @@ const MenuComponent: React.FC = () => {
   };
 
   return (
-    <div className="xl:flex xl:min-h-full max-w-screen w-screen xl:justify-center xl:h-[35px] xl:border-y-[2px] px-4 xl:px-16">
-      <ul className="flex items-center justify-between w-full space-x-4 xl:flex-row xl:space-x-8 xl:flex">
+    <div className="max-w-screen-xl mx-auto flex items-center">
+      <ul className="flex items-center w-full space-x-4 xl:flex-row xl:space-x-8 xl:flex">
         <li className="z-[1] flex items-center relative">
           <MenuOutlined
             onClick={() => setIsModalOpen(!isModalOpen)}
