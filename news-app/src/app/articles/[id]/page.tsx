@@ -15,6 +15,7 @@ interface Article {
   created_date: string;
   category: string | null;
   subcategory: string | null;
+  views: number;
 }
 
 const ArticleDetail = () => {
@@ -25,15 +26,27 @@ const ArticleDetail = () => {
 
   const sessionToken = clientSessionToken.value; 
 
+  const increaseView = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/articles/${id}/increase-view/`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        console.error("Failed to increase view count.");
+      }
+    } catch (error) {
+      console.error("Error increasing view count:", error);
+    }
+  };
+
   useEffect(() => {
-    // console.log(sessionToken);
-    
     const fetchArticleData = async () => {
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/articles/${id}/`);
         if (response.ok) {
           const data: Article = await response.json();
           setArticleData(data);
+          increaseView(); 
         } else {
           setError("Failed to fetch article data.");
         }
@@ -61,7 +74,7 @@ const ArticleDetail = () => {
     return <div className="text-center py-6 text-red-500">{error}</div>;
   }
 
-  const { title, content, author, created_date, category, subcategory } = articleData || {};
+  const { title, content, author, created_date, category, subcategory, views  } = articleData || {};
 
   return (
     <>
@@ -79,7 +92,7 @@ const ArticleDetail = () => {
             dangerouslySetInnerHTML={{ __html: content }}
           />
           <div className="flex justify-between text-sm text-gray-500">
-            <span>Lượt Xem: </span>
+            <span>Lượt Xem: {views || 0}</span>
             <span>Tác Giả: {author ? author : "N/A"}</span> 
           </div>
           <div className="mt-6">
