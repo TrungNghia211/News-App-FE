@@ -17,41 +17,24 @@ interface SubCategory {
   sub: string;
 }
 
-interface User {
-  id: number;
-  name: string;
-}
-
 const ArticlesAdd = () => {
   const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
   const [fetchedSubCategories, setFetchedSubCategories] = useState<SubCategory[]>([]);
   const [title, setTitle] = useState<string>("");
   const [imageUrl, setImageUrl] = useState<string>("");
   const [category, setCategory] = useState<Category | null>(null);
-  const [subCategory, setSubCategory] = useState<string>("");
+  const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
   const [content, setContent] = useState<string>("");
   const [imageSource, setImageSource] = useState<string>("file");
-  const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
+  const [author, setAuthor] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/user"); 
-        const userData: User = await res.json();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
-
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/categories");
+        const res = await fetch("http://127.0.0.1:8000/api/categories/");
         if (!res.ok) {
           throw new Error("Failed to fetch categories");
         }
@@ -67,11 +50,12 @@ const ArticlesAdd = () => {
     fetchCategories();
   }, []);
 
+  // Fetch subcategories when category changes
   useEffect(() => {
     if (category) {
       const fetchSubCategories = async () => {
         try {
-          const res = await fetch(`/api/subcategories/category/${category.id}`);
+          const res = await fetch(`http://127.0.0.1:8000/api/subcategories/category/${category.id}/`);
           if (!res.ok) {
             throw new Error("Failed to fetch subcategories");
           }
@@ -90,19 +74,22 @@ const ArticlesAdd = () => {
     try {
       const payload = {
         title: title,
-        imageUrl: file
+        image_url: 
+        file
           ? await uploadImageToFirebase(file)
               .then((url) => url)
               .catch(() => "")
-          : imageUrl,
+          :
+           imageUrl,
         content: content,
-        category: category?.name || "",
-        subCategory: subCategory === "None" ? "" : subCategory,
-        authorId: user?.id || 0, 
+        category_id: category?.id || 0,
+        subcategory_id: subCategory?.id || 0,
+        author: author,
+        active: true,
       };
-
-      console.log("Payload:", payload);
-      const res = await fetch("/api/articles", {
+      console.log(payload);
+      
+      const res = await fetch("http://127.0.0.1:8000/api/articles/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -143,6 +130,18 @@ const ArticlesAdd = () => {
           </div>
 
           <div>
+            <label className="block mb-2">Author:</label>
+            <input
+              type="text"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              placeholder="Enter author name"
+              required
+            />
+          </div>
+
+          <div>
             <label className="block mb-2">Upload Image:</label>
             <div className="flex items-center mb-4">
               <input
@@ -153,9 +152,7 @@ const ArticlesAdd = () => {
                 checked={imageSource === "file"}
                 onChange={(e) => setImageSource(e.target.value)}
               />
-              <label htmlFor="fileUpload" className="ml-2">
-                Choose File
-              </label>
+              <label htmlFor="fileUpload" className="ml-2">Choose File</label>
 
               <input
                 type="radio"
@@ -166,9 +163,7 @@ const ArticlesAdd = () => {
                 onChange={(e) => setImageSource(e.target.value)}
                 className="ml-4"
               />
-              <label htmlFor="urlUpload" className="ml-2">
-                Enter URL
-              </label>
+              <label htmlFor="urlUpload" className="ml-2">Enter URL</label>
             </div>
 
             {imageSource === "file" ? (
@@ -183,6 +178,7 @@ const ArticlesAdd = () => {
                       setImageUrl(reader.result as string);
                     };
                     reader.readAsDataURL(file);
+                    setFile(file);
                   }
                 }}
               />
@@ -229,8 +225,13 @@ const ArticlesAdd = () => {
           <div>
             <label className="block mb-2">Select Subcategory:</label>
             <select
-              value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
+              value={subCategory ? subCategory.sub : ""}
+              onChange={(e) => {
+                const selectedSubCategory = fetchedSubCategories.find(
+                  (sub) => sub.sub === e.target.value
+                );
+                setSubCategory(selectedSubCategory || null);
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             >
@@ -257,6 +258,8 @@ const ArticlesAdd = () => {
           </div>
 
           <div className="flex flex-col items-end mt-10 space-y-2">
+          <button className=" py-2 px-4 rounded"></button>
+          <button className=" py-2 px-4 rounded"></button>
             <div className="flex justify-end space-x-2">
               <button
                 type="submit"
