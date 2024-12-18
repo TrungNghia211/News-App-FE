@@ -33,7 +33,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "components/Menu/page.jsx"  ],
+, "src/app/components/Menu/page.jsx"  ],
   "exclude": [
     "node_modules"
   ],

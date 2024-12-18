@@ -4,7 +4,7 @@ import { Table, Modal, Form, Button, Layout } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import Header from "../Header/page";
 import { useEffect, useState } from "react";
-import { apiFetch } from "../../utils/api";
+import { apiFetch } from "../../../../utils/api";
 import columnsCategory from "./columns";
 import FormAddEdit from "./FormAddEdit";
 
