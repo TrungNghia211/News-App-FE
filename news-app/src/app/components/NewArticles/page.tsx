@@ -9,10 +9,9 @@ interface Article {
   content: string;
   updated_date: string;
   image_url: string;
-  views: number; 
 }
 
-const HotArticles: React.FC = () => {
+const NewArticles: React.FC = () => {
   const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
 
@@ -29,28 +28,28 @@ const HotArticles: React.FC = () => {
             },
           }
         );
-
+  
         if (!response.ok) throw new Error("Failed to fetch articles");
-
+  
         const data: Article[] = await response.json();
-
+  
         const currentTime = new Date();
         const oneWeekAgo = new Date(currentTime.getTime() - 7 * 24 * 60 * 60 * 1000);
-
+  
         const filteredArticles = data.filter((article) => {
           const updatedDate = new Date(article.updated_date);
           return article.active === true && updatedDate >= oneWeekAgo;
         });
-
-        const sortedArticles = filteredArticles.sort((a, b) => b.views - a.views);
-        setArticles(sortedArticles.slice(0, 5));
+  
+        setArticles(filteredArticles.slice(0, 5));
       } catch (error) {
         console.error("Error fetching articles:", error);
       }
     };
-
+  
     fetchArticles();
   }, []);
+  
 
   return (
     <div className="w-full max-w-screen-sm mx-auto p-4">
@@ -69,8 +68,8 @@ const HotArticles: React.FC = () => {
                 onClick={() => router.push(`/articles/${article.id}/`)}
                 dangerouslySetInnerHTML={{
                   __html:
-                    article.content.length > 70
-                      ? article.content.slice(0, 70) + "..."
+                    article.content.length > 70  
+                      ? article.content.slice(0, 70 ) + "..."
                       : article.content,
                 }}
               />
@@ -93,4 +92,4 @@ const HotArticles: React.FC = () => {
   );
 };
 
-export default HotArticles;
+export default NewArticles;
