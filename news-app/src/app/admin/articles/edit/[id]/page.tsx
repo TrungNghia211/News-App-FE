@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
-import Header from "../../../../components/Header/page";
+import Header from "../../../../components/Header";
 import "react-quill/dist/quill.snow.css";
 import useCustomToast from "../../../../../../utils/toast";
 
@@ -53,11 +53,11 @@ const ArticlesEdit: React.FC = () => {
     const fetchArticle = async () => {
       try {
         const res = await fetch(`http://127.0.0.1:8000/api/articles/${articleId}/`);
-        
+
         if (res.ok) {
           const articleData: Article = await res.json();
           console.log("articleData:", articleData);
-          
+
           setArticle(articleData);
           setTitle(articleData.title);
           setImageUrl(articleData.image_url);
@@ -77,8 +77,8 @@ const ArticlesEdit: React.FC = () => {
       try {
         const res = await fetch("http://127.0.0.1:8000/api/categories/");
         if (res.ok) {
-          const categoriesData: Category[] = await res.json(); 
-          setFetchedCategories(categoriesData); 
+          const categoriesData: Category[] = await res.json();
+          setFetchedCategories(categoriesData);
         } else {
           throw new Error("Failed to fetch categories");
         }
@@ -97,7 +97,7 @@ const ArticlesEdit: React.FC = () => {
       const selectedCategory = fetchedCategories.find((cat) => cat.id === category);
       if (selectedCategory) {
         setCategoryValue(selectedCategory.name);
-        setSubCategory(0); 
+        setSubCategory(0);
         fetchSubCategories(selectedCategory.id);
       }
     }
@@ -118,7 +118,7 @@ const ArticlesEdit: React.FC = () => {
   };
   const handleEditArticle = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);  
+    setLoading(true);
 
     const updatedArticle = {
       title: title || "Untitled Article",
@@ -149,10 +149,10 @@ const ArticlesEdit: React.FC = () => {
       console.error("Failed to add article:", error);
       error("Cập Nhật Bài Viết Thất Bại !");
     } finally {
-      setLoading(false);  
+      setLoading(false);
     }
   };
-  
+
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedCategory = fetchedCategories.find((cat) => cat.name === e.target.value);
     if (selectedCategory) {
@@ -302,8 +302,8 @@ const ArticlesEdit: React.FC = () => {
           </div>
 
           <div className="flex flex-col items-end mt-10 space-y-2">
-          <button className=" py-2 px-4 rounded"></button>
-          <button className=" py-2 px-4 rounded"></button>
+            <button className=" py-2 px-4 rounded"></button>
+            <button className=" py-2 px-4 rounded"></button>
             <div className="flex justify-end space-x-2">
               <button
                 type="submit"

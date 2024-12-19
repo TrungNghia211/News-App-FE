@@ -1,7 +1,7 @@
 "use client";
 
 import ArticlesByCategory from "@/app/components/ArticlesCategoryID/page";
-import Header from "@/app/components/Header/page";
+import Header from "@/app/components/Header";
 import HotArticles from "@/app/components/HotArticles/page";
 import MenuComponent from "@/app/components/Menu/page";
 import NewArticles from "@/app/components/NewArticles/page";
@@ -10,9 +10,9 @@ import { useEffect, useState } from "react";
 
 export default function CategoryPage() {
   const params = useParams();
-  const categoryId = decodeURIComponent(params.categoryId || ''); 
+  const categoryId = decodeURIComponent(params.categoryId || '');
   const [categoryName, setCategoryName] = useState<string | null>(null);
-  const [articles, setArticles] = useState<any[]>([]); 
+  const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +45,7 @@ export default function CategoryPage() {
         throw new Error("Failed to fetch articles");
       }
       const data = await response.json();
-      setArticles(data); 
+      setArticles(data);
     } catch (error) {
       setError("Error fetching articles");
     } finally {
@@ -57,7 +57,7 @@ export default function CategoryPage() {
     <>
       <Header />
       <MenuComponent />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
         <div className="p-4 rounded-lg">
           <h2 className="text-2xl font-bold text-center mt-20 text-green-500">Tin Mới</h2>
@@ -66,15 +66,15 @@ export default function CategoryPage() {
           </div>
         </div>
         <div className="p-4 rounded-lg col-span-2  w-full">
-        <div className="text-4xl font-bold mt-4">
-          {categoryName}
-        </div>
+          <div className="text-4xl font-bold mt-4">
+            {categoryName}
+          </div>
           <ArticlesByCategory categoryId={categoryId} />
         </div>
         <div className="p-4 rounded-lg">
           <h2 className="text-2xl font-bold text-center text-red-600 mt-20">Tin Nổi Bật Trong Tuần</h2>
           <div>
-            <HotArticles/>
+            <HotArticles />
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ type CustomOptions = Omit<RequestInit, 'method'> & {
     baseUrl?: string | undefined;
 }
 
-class HttpError extends Error {
+export class HttpError extends Error {
     status: number
     payload: any
     constructor({ status, payload }: { status: number, payload: any }) {
@@ -47,15 +47,17 @@ const request = async <Response>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url:
     const baseUrl = options?.baseUrl === undefined ? envConfig.NEXT_PUBLIC_API_ENDPOINT : options.baseUrl;
     const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
 
-    const res = await fetch(fullUrl, {
+    const res = await fetch(`${baseUrl}${url}`, {
         headers: {
             ...baseHeaders,
-            ...options.headers,
+            ...options?.headers,
         },
         method,
         body,
         ...options,
     });
+
+    console.log('res: ', res);
 
     const payload: Response = await res.json();
 
@@ -77,7 +79,7 @@ const request = async <Response>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url:
 }
 
 const http = {
-    get<Response>(url: string, options: Omit<CustomOptions, 'body'> | undefined) {
+    get<Response>(url: string, options?: Omit<CustomOptions, 'body'> | undefined) {
         return request<Response>('GET', url, options);
     },
 
@@ -85,11 +87,11 @@ const http = {
         return request<Response>('POST', url, { ...options, body });
     },
 
-    put<Response>(url: string, body: any, options: Omit<CustomOptions, 'body'> | undefined) {
+    put<Response>(url: string, body: any, options?: Omit<CustomOptions, 'body'> | undefined) {
         return request<Response>('PUT', url, { ...options, body });
     },
 
-    delete<Response>(url: string, body: any, options: Omit<CustomOptions, 'body'> | undefined) {
+    delete<Response>(url: string, body?: any, options?: Omit<CustomOptions, 'body'> | undefined) {
         return request<Response>('DELETE', url, { ...options, body });
     },
 }

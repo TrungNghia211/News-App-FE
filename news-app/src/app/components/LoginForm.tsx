@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input"
 import http, { clientSessionToken } from "@/lib/http"
 import { LoginResType } from "@/schemaValidations/auth.schema"
 import { useRouter } from "next/navigation"
-import useCustomToast from "../../../../utils/toast"
 
 const formSchema = z.object({
     username: z.string().trim().min(1, "Username is required"),
@@ -26,7 +25,7 @@ const formSchema = z.object({
 export default function LoginForm() {
 
     const router = useRouter();
-    const {success, error} = useCustomToast();
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -41,9 +40,6 @@ export default function LoginForm() {
             const resultFromNextServer = await http.post<any>('/api/auth', JSON.stringify(result), { baseUrl: '' });
             // clientSessionToken.value = resultFromNextServer.payload?.res?.payload?.access;
             // router.push('/profile');
-            console.log('result => ', result);
-            success("Đăng nhập thành công !")
-            router.push('/');
         } catch (error) {
             if (error.status === 401) {
                 form.setError('password', {
@@ -54,9 +50,6 @@ export default function LoginForm() {
                     type: 'server',
                     message: 'Email or password is incorrect !'
                 });
-            } else {
-                error("Đăng nhập không thành công !")
-                router.push('/login');
             }
         }
     }

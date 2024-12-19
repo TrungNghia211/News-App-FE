@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import MenuComponent from "../../components/Menu/page";
-import Header from "../../components/Header/page";
+import Header from "../../components/Header";
 import CommentedForm from "../../components/page";
 import { clientSessionToken } from "@/lib/http";
 import ArticlesByCategory from "@/app/components/ArticlesCategory/page";
@@ -29,7 +29,7 @@ const ArticleDetail = () => {
   const [categoryName, setCategoryName] = useState<string | null>(null);
   const [subcategoryName, setSubcategoryName] = useState<string | null>(null);
 
-  const sessionToken = clientSessionToken.value; 
+  const sessionToken = clientSessionToken.value;
 
   const increaseView = async () => {
     try {
@@ -51,7 +51,7 @@ const ArticleDetail = () => {
         if (response.ok) {
           const data: Article = await response.json();
           setArticleData(data);
-          increaseView(); 
+          increaseView();
         } else {
           setError("Failed to fetch article data.");
         }
@@ -74,7 +74,7 @@ const ArticleDetail = () => {
           const response = await fetch(`http://127.0.0.1:8000/api/categories/${articleData.category_id}/`);
           if (response.ok) {
             const data = await response.json();
-            setCategoryName(data.name); 
+            setCategoryName(data.name);
           } else {
             console.error("Failed to fetch category name.");
           }
@@ -119,7 +119,7 @@ const ArticleDetail = () => {
     return <div className="text-center py-6 text-red-500">{error}</div>;
   }
 
-  const { title, content, author, created_date, category_id, subcategory_id, views  } = articleData || {};
+  const { title, content, author, created_date, category_id, subcategory_id, views } = articleData || {};
 
   return (
     <>
@@ -129,44 +129,36 @@ const ArticleDetail = () => {
         <div className="p-4 rounded-lg">
           <h2 className="text-2xl font-bold text-center mt-20 text-green-500">Tin Mới</h2>
           <div>
-            <NewArticles/>
+            <NewArticles />
           </div>
         </div>
         <div className="p-4 rounded-lg col-span-2  w-full">
-        <div className=" min-h-screen mt-10 ">
-        <div className="max-w-full p-6  mt-6">
-          <div className="flex justify-between  font-bold mb-6">
-            <span>
-              <div className="flex items-center space-x-4">
-            <div className="text-3xl font-bold">
-              {categoryName} 
+          <div className=" min-h-screen mt-10 ">
+            <div className="max-w-full p-6  mt-6">
+              <div className="flex justify-between  text-gray-500 font-bold mb-6">
+                <span className="text-2xl">{categoryName} - {subcategoryName}</span>
+                <span>Ngày Đăng: {created_date ? new Date(created_date).toLocaleDateString() : "N/A"}</span>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center mt-3">{title}</h1>
+              <div
+                className="text-lg text-gray-700 leading-relaxed mb-6"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+              <div className="flex justify-between font-bold text-gray-500">
+                <span>Lượt Xem: {views || 0}</span>
+                <span>Tác Giả: {author ? author : "N/A"}</span>
+              </div>
+              <div className="mt-6">
+                <CommentedForm articleId={id} />
+              </div>
             </div>
-            <div className="text-xl font-bold text-gray-600">
-              {subcategoryName} 
-            </div>
-          </div></span>
-            <span>Ngày Đăng: {created_date ? new Date(created_date).toLocaleDateString() : "N/A"}</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center mt-3">{title}</h1>
-          <div
-            className="text-lg text-gray-700 leading-relaxed mb-6"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-          <div className="flex justify-between font-bold text-gray-500">
-            <span>Lượt Xem: {views || 0}</span>
-            <span>Tác Giả: {author ? author : "N/A"}</span> 
-          </div>
-          <div className="mt-6">
-            <CommentedForm articleId={id} />
-          </div>
-        </div>
 
-      </div>
+          </div>
         </div>
         <div className="p-4 rounded-lg">
           <h2 className="text-2xl font-bold text-center text-red-600 mt-20">Tin Nổi Bật Trong Tuần</h2>
           <div>
-            <HotArticles/>
+            <HotArticles />
           </div>
         </div>
       </div>
@@ -174,7 +166,7 @@ const ArticleDetail = () => {
         <div className="">
           <h1 className="text-3xl font-bold text-gray-800 mb-4 mt-4 text-center ">Bài viết Tương Tự</h1>
           <div className="max-w-screen-xl mx-auto  items-center">
-          <ArticlesByCategory categoryId={category_id} />
+            <ArticlesByCategory categoryId={category_id} />
           </div>
         </div>
       )}

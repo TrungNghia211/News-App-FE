@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import Header from "../../../components/Header/page";
+import Header from "../../../components/Header";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
@@ -76,21 +76,20 @@ const ArticlesAdd = () => {
     try {
       const payload = {
         title: title,
-        image_url: 
-        file
-          ? await uploadImageToFirebase(file)
+        image_url:
+          file
+            ? await uploadImageToFirebase(file)
               .then((url) => url)
               .catch(() => "")
-          :
-           imageUrl,
+            :
+            imageUrl,
         content: content,
         category_id: category?.id || 0,
         subcategory_id: subCategory?.id || 0,
         author: author,
         active: true,
       };
-      console.log(payload);
-      
+
       const res = await fetch("http://127.0.0.1:8000/api/articles/", {
         method: "POST",
         headers: {
@@ -262,8 +261,8 @@ const ArticlesAdd = () => {
           </div>
 
           <div className="flex flex-col items-end mt-10 space-y-2">
-          <button className=" py-2 px-4 rounded"></button>
-          <button className=" py-2 px-4 rounded"></button>
+            <button className=" py-2 px-4 rounded"></button>
+            <button className=" py-2 px-4 rounded"></button>
             <div className="flex justify-end space-x-2">
               <button
                 type="submit"

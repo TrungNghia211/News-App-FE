@@ -4,7 +4,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { Avatar, Card, Row, Col, Typography, Button, Modal, Input } from "antd";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Header from "../../components/Header/page";
+import Header from "../../components/Header";
 import debounce from "lodash.debounce";
 
 const { Meta } = Card;
