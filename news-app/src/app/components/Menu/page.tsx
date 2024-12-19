@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { MenuOutlined, CaretDownOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface SubCategory {
   id: number;
@@ -16,6 +17,7 @@ interface Category {
 }
 
 const MenuComponent: React.FC = () => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [hoveredCategoryMenu, setHoveredCategoryMenu] = useState<number | null>(null);
   const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
@@ -42,7 +44,7 @@ const MenuComponent: React.FC = () => {
 
   const handleCategoryClick = (e: React.MouseEvent<HTMLAnchorElement>, categoryId: number) => {
     e.preventDefault();
-    console.log(`Category ${categoryId} clicked`);
+    router.push(`/category/${categoryId}`);
   };
 
   return (
@@ -80,7 +82,7 @@ const MenuComponent: React.FC = () => {
                             className="p-2 text-sm text-gray-600 hover:bg-gray-200 hover:underline cursor-pointer"
                           >
                             <Link
-                              href={`/${category.id}/${subCategory.id}`}
+                              href={`/category/${category.id}/subcategory/${subCategory.id}`}
                               className="block"
                             >
                               {subCategory.name}

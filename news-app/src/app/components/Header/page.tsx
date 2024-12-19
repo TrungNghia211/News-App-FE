@@ -64,13 +64,13 @@ const Header = () => {
             NEW APP
           </h1>
           <span className="text-sm text-gray-500">{dateTime}</span>
-          <Search
+          {/* <Search
             placeholder="Search articles"
             value={searchValue}
             onChange={handleSearchChange}
             onSearch={onSearch}
             className="mr-4 w-72 text-lg p-3"
-          />
+          /> */}
         </div>
 
         <div className="flex items-center space-x-3">

@@ -6,6 +6,9 @@ import MenuComponent from "../../components/Menu/page";
 import Header from "../../components/Header/page";
 import CommentedForm from "../../components/page";
 import { clientSessionToken } from "@/lib/http";
+import ArticlesByCategory from "@/app/components/ArticlesCategory/page";
+import HotArticles from "@/app/components/HotArticles/page";
+import NewArticles from "@/app/components/NewArticles/page";
 
 
 interface Article {
@@ -13,8 +16,8 @@ interface Article {
   content: string;
   author: string | null;
   created_date: string;
-  category: string | null;
-  subcategory: string | null;
+  category_id: number | null;
+  subcategory_id: number | null;
   views: number;
 }
 
@@ -23,6 +26,8 @@ const ArticleDetail = () => {
   const [articleData, setArticleData] = useState<Article | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [subcategoryName, setSubcategoryName] = useState<string | null>(null);
 
   const sessionToken = clientSessionToken.value; 
 
@@ -62,6 +67,46 @@ const ArticleDetail = () => {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (articleData?.category_id) {
+      const fetchCategoryName = async () => {
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/api/categories/${articleData.category_id}/`);
+          if (response.ok) {
+            const data = await response.json();
+            setCategoryName(data.name); 
+          } else {
+            console.error("Failed to fetch category name.");
+          }
+        } catch (error) {
+          console.error("Error fetching category name:", error);
+        }
+      };
+
+      fetchCategoryName();
+    }
+  }, [articleData?.category_id]);
+
+  useEffect(() => {
+    if (articleData?.subcategory_id) {
+      const fetchSubcategoryName = async () => {
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/api/subcategories/${articleData.subcategory_id}/`);
+          if (response.ok) {
+            const data = await response.json();
+            setSubcategoryName(data.sub);
+          } else {
+            console.error("Failed to fetch subcategory name.");
+          }
+        } catch (error) {
+          console.error("Error fetching subcategory name:", error);
+        }
+      };
+
+      fetchSubcategoryName();
+    }
+  }, [articleData?.subcategory_id]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-6">
@@ -74,16 +119,24 @@ const ArticleDetail = () => {
     return <div className="text-center py-6 text-red-500">{error}</div>;
   }
 
-  const { title, content, author, created_date, category, subcategory, views  } = articleData || {};
+  const { title, content, author, created_date, category_id, subcategory_id, views  } = articleData || {};
 
   return (
     <>
       <Header />
       <MenuComponent />
-      <div className="bg-gray-100 min-h-screen mt-10">
-        <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-6">
-          <div className="flex justify-between  text-gray-500 font-bold">
-            <span></span>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
+        <div className="p-4 rounded-lg">
+          <h2 className="text-2xl font-bold text-center mt-20 text-green-500">Tin Mới</h2>
+          <div>
+            <NewArticles/>
+          </div>
+        </div>
+        <div className="p-4 rounded-lg col-span-2  w-full">
+        <div className=" min-h-screen mt-10 ">
+        <div className="max-w-full p-6  mt-6">
+          <div className="flex justify-between  text-gray-500 font-bold mb-6">
+            <span className="text-2xl">{categoryName} - {subcategoryName}</span>
             <span>Ngày Đăng: {created_date ? new Date(created_date).toLocaleDateString() : "N/A"}</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center mt-3">{title}</h1>
@@ -99,7 +152,24 @@ const ArticleDetail = () => {
             <CommentedForm articleId={id} />
           </div>
         </div>
+
       </div>
+        </div>
+        <div className="p-4 rounded-lg">
+          <h2 className="text-2xl font-bold text-center text-red-600 mt-20">Tin Nổi Bật Trong Tuần</h2>
+          <div>
+            <HotArticles/>
+          </div>
+        </div>
+      </div>
+      {category_id && (
+        <div className="">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4 mt-4 text-center ">Bài viết Tương Tự</h1>
+          <div className="max-w-screen-xl mx-auto  items-center">
+          <ArticlesByCategory categoryId={category_id} />
+          </div>
+        </div>
+      )}
     </>
   );
 };
