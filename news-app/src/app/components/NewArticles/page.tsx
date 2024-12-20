@@ -8,7 +8,9 @@ interface Article {
   title: string;
   content: string;
   updated_date: string;
+  created_date: string;
   image_url: string;
+  active: boolean;
 }
 
 const NewArticles: React.FC = () => {
@@ -40,8 +42,13 @@ const NewArticles: React.FC = () => {
           const updatedDate = new Date(article.updated_date);
           return article.active === true && updatedDate >= oneWeekAgo;
         });
+        const sortedArticles = filteredArticles.sort((a, b) => {
+          const dateA = new Date(a.created_date);
+          const dateB = new Date(b.created_date);
+          return dateB.getTime() - dateA.getTime(); 
+        });
   
-        setArticles(filteredArticles.slice(0, 5));
+        setArticles(sortedArticles.slice(0, 5));
       } catch (error) {
         console.error("Error fetching articles:", error);
       }

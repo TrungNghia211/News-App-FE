@@ -68,7 +68,7 @@ const MenuComponent: React.FC = () => {
                     <span className="flex items-center cursor-pointer">
                       <CaretDownOutlined className="mr-2 transition-all duration-300 group-hover:rotate-180" />
                       <Link
-                        href={`/${category.id}`}
+                        href={`/category/${category.id}`}
                         className="hover:text-green-400 text-xl font-normal transition-all duration-300"
                       >
                         {category.name}

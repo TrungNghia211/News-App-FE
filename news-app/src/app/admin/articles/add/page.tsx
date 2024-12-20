@@ -6,6 +6,7 @@ import Header from "../../../components/Header/page";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
+import useCustomToast from "../../../../../utils/toast";
 
 interface Category {
   id: number;
@@ -29,6 +30,7 @@ const ArticlesAdd = () => {
   const [author, setAuthor] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const router = useRouter();
+  const {success , error} = useCustomToast();
 
   // Fetch categories
   useEffect(() => {
@@ -98,12 +100,14 @@ const ArticlesAdd = () => {
       });
 
       if (res.ok) {
+        success("Thêm Bài Viết Thành Công !");
         router.push("/admin/articles");
       } else {
         throw new Error("Failed to add article");
       }
     } catch (error) {
       console.error("Failed to add article:", error);
+      error("Thêm Bài Viết Thất Bại !");
     }
   };
 

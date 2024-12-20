@@ -5,12 +5,18 @@ import { Button, Input } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import debounce from "lodash.debounce";
+import jwt from 'jsonwebtoken';
+import { clientSessionToken } from "@/lib/http";
+import useCustomToast from "../../../../utils/toast";
 
 const { Search } = Input;
 
 const Header = () => {
   const router = useRouter();
-
+  const sessionToken = clientSessionToken.value;
+  const decoded = jwt.decode(sessionToken);
+  const {success, error} = useCustomToast();
+  
   const getCurrentDateTime = () => {
     const now = new Date();
     const day = now.getDate().toString().padStart(2, "0");
@@ -55,6 +61,13 @@ const Header = () => {
   const handleLoginClick = () => {
     router.push("/login");
   };
+  const handleProfileClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if(!sessionToken){
+      error("Vui lòng đăng nhập !!!")
+    } else{
+      router.push(`/profile/${decoded.user_id}/`);
+    }
+  };
 
   return (
     <header className="bg-white p-6">
@@ -72,7 +85,17 @@ const Header = () => {
             className="mr-4 w-72 text-lg p-3"
           /> */}
         </div>
-
+        <div className="flex items-center space-x-3">
+          
+          <Button
+            type="white"
+            icon={<UserOutlined />}
+            onClick={handleProfileClick}
+            className="flex items-center space-x-2 text-xl hover:bg-yellow-400"
+          >
+            Profile
+          </Button>
+        </div>
         <div className="flex items-center space-x-3">
           
           <Button
