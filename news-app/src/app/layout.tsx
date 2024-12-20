@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import AppProvider from "@/app/AppProvider";
 import { cookies } from "next/headers";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,7 +34,9 @@ export default async function RootLayout({ children }) {
         <AppProvider initialSessionToken={sessionToken?.value}>
           {children}
         </AppProvider>
+        <ToastContainer position="bottom-right" autoClose={5000} />
         <Toaster />
+
       </body>
     </html>
   );

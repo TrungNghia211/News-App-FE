@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../components/Header/page";
 import "react-quill/dist/quill.snow.css";
+import useCustomToast from "../../../../../../utils/toast";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -45,6 +46,7 @@ const ArticlesEdit: React.FC = () => {
   const [content, setContent] = useState<string>("");
   const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
   const [subOptions, setSubOptions] = useState<SubCategory[]>([]);
+  const {success, error} = useCustomToast();
 
 
   useEffect(() => {
@@ -138,12 +140,14 @@ const ArticlesEdit: React.FC = () => {
       });
 
       if (res.ok) {
+        success("Cập Nhật Bài Viết Thành Công !");
         router.push("/admin/articles");
       } else {
-        throw new Error("Failed to update article");
+        throw new Error("Failed to add article");
       }
     } catch (error) {
-      console.error("Failed to update article:", error);
+      console.error("Failed to add article:", error);
+      error("Cập Nhật Bài Viết Thất Bại !");
     } finally {
       setLoading(false);  
     }

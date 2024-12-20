@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import { Dropdown } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
 import { clientSessionToken } from "@/lib/http";
+import useCustomToast from "../../../utils/toast";
+import jwt from 'jsonwebtoken';
 
 interface Comment {
   id: string;
   title: string;
   author: string;
+  authorName: string; 
   created_date: string;
   updated_date: string;
 }
@@ -19,15 +21,18 @@ interface CommentedFormProps {
 
 const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
   const [newComment, setNewComment] = useState("");
-  const [author, setAuthor] = useState("");  
   const [comments, setComments] = useState<Comment[]>([]);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editedComment, setEditedComment] = useState("");
   const router = useRouter();
+  
+  const { success, error } = useCustomToast();
 
   const sessionToken = clientSessionToken.value;
-
+  const decoded = jwt.decode(sessionToken);
+  
   const fetchComments = useCallback(async () => {
+    
     try {
       const response = await fetch(
         `http://127.0.0.1:8000/api/comments/articles/${articleId}/`
@@ -36,13 +41,38 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
       if (!response.ok) throw new Error("Failed to fetch comments.");
 
       const data = await response.json();
-      const formattedComments = data.map((item: any) => ({
-        id: item.id.toString(),
-        title: item.title,
-        author: item.author  || "Anonymous",
-        created_date: item.created_date,
-        updated_date: item.updated_date,
-      }));
+      const formattedComments = await Promise.all(
+        data.map(async (item: any) => {
+          try {
+            const userResponse = await fetch(
+              `http://127.0.0.1:8000/api/users/${item.author}/`
+            );
+  
+            if (!userResponse.ok) throw new Error("Failed to fetch user data.");
+  
+            const userData = await userResponse.json();
+  
+            return {
+              id: item.id.toString(),
+              title: item.title,
+              author: userData.username || "Unknown", 
+              authorName: userData.username || "Unknown", 
+              created_date: item.created_date,
+              updated_date: item.updated_date,
+            };
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+            return {
+              id: item.id.toString(),
+              title: item.title,
+              author: "Unknown", 
+              authorName: "Unknown", 
+              created_date: item.created_date,
+              updated_date: item.updated_date,
+            };
+          }
+        })
+      );
       setComments(formattedComments);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -52,25 +82,26 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
+  
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!sessionToken) {
-      alert("You need to login first.");
+      alert("Bạn cần đăng nhập để gửi bình luận.");
       router.push("/login");
       return;
     }
   
-    if (!newComment.trim() || !author.trim()) {
-      alert("Both comment and author fields are required.");
+    if (!newComment.trim() ) {
+      alert("Cả trường bình luận và tác giả đều cần được điền.");
       return;
     }
   
     try {
       const payload = { 
         title: newComment,
-        author: author, 
+        author: decoded.user_id, 
         article: articleId
       };
       console.log(payload);
@@ -81,24 +112,29 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionToken}`, 
+            Authorization: `Bearer ${sessionToken}`,
           },
           body: JSON.stringify(payload),
         }
       );
   
-      if (response.ok) {
-        alert("Comment posted successfully!");
-        setNewComment(""); 
-        setAuthor("");
-        fetchComments(); 
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
-        alert(`Error: ${errorData.message || "Failed to post comment."}`);
+        console.error("Error response:", errorData);
+        if (response.status === 401) {
+          alert("Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
+          router.push("/login");
+        } else {
+          alert("Có lỗi xảy ra khi gửi bình luận.");
+        }
+        return;
       }
+  
+      success("Bình luận đã được đăng thành công.");
+      setNewComment(""); 
+      fetchComments(); 
     } catch (error) {
-      console.error("Error submitting comment:", error);
-      alert("An error occurred while posting your comment.");
+      error("Có lỗi xảy ra khi gửi bình luận.");
     }
   };
 
@@ -119,13 +155,13 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
 
       if (response.ok) {
         setComments((prev) => prev.filter((comment) => comment.id !== commentId));
-        alert("Comment deleted successfully!");
+        success("Comment deleted successfully!");
       } else {
-        alert("Failed to delete comment.");
+        error("Failed to delete comment.");
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
-      alert("An error occurred while deleting the comment.");
+      error("An error occurred while deleting the comment.");
     }
   };
 
@@ -133,32 +169,51 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
     setEditingCommentId(commentId);
     setEditedComment(title);
   };
-
-  const handleUpdateComment = async () => {
+  
+  const handleUpdateComment = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!sessionToken) {
-      alert("You need to login first.");
+      alert("Bạn cần đăng nhập để sửa bình luận.");
       return;
     }
-
+    
     if (!editedComment.trim()) {
-      alert("Comment cannot be empty.");
+      error("Comment cannot be empty.");
       return;
     }
 
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/comments/${editingCommentId}/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionToken}`,
-          },
-          body: JSON.stringify({ title: editedComment }),
-        }
-      );
+      const currentComment = comments.find((comment) => comment.id === editingCommentId);
 
-      if (response.ok) {
+      if (!currentComment) {
+        error("Comment not found.");
+        return;
+      }
+
+      const updatedComment = {
+        title: editedComment,
+        author: decoded.user_id,  
+        article: articleId, 
+      };
+      
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/comments/${editingCommentId}/`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${sessionToken}`,
+            },
+            body: JSON.stringify(updatedComment),
+          }
+        );
+    
+        if (!response.ok) {
+          const data = await response.json();
+          console.error("Failed to update comment:", data);
+          error(data?.message || "Failed to update comment.");
+          return;
+        }
         setComments((prev) =>
           prev.map((comment) =>
             comment.id === editingCommentId
@@ -168,13 +223,11 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
         );
         setEditingCommentId(null);
         setEditedComment("");
-        alert("Comment updated successfully!");
-      } else {
-        alert("Failed to update comment.");
-      }
-    } catch (error) {
-      console.error("Error updating comment:", error);
-      alert("An error occurred while updating the comment.");
+        success("Comment updated successfully!");
+    
+      } catch (error) {
+      console.error("An error occurred:", error);
+      error("An error occurred while updating the comment.");
     }
   };
 
@@ -187,13 +240,6 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
           onChange={(e) => setNewComment(e.target.value)}
           className="flex-grow w-64 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Viết bình luận..."
-        />
-        <input
-          type="text"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-          className="flex-grow p-3 border ml-2 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Nhập tên tác giả"
         />
         <button
           onClick={handleCommentSubmit}
@@ -224,7 +270,7 @@ const CommentedForm: React.FC<CommentedFormProps> = ({ articleId }) => {
                 <div>
                   <p className="text-gray-700">{comment.title}</p>
                   <p className="text-sm text-gray-500">
-                    Tác giả: {comment.author} 
+                    Tác giả: {comment.authorName} 
                     {/* | Ngày: {new Date(comment.created_date).toLocaleString()} */}
                   </p>
                 </div>

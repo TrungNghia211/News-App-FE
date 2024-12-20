@@ -135,8 +135,16 @@ const ArticleDetail = () => {
         <div className="p-4 rounded-lg col-span-2  w-full">
         <div className=" min-h-screen mt-10 ">
         <div className="max-w-full p-6  mt-6">
-          <div className="flex justify-between  text-gray-500 font-bold mb-6">
-            <span className="text-2xl">{categoryName} - {subcategoryName}</span>
+          <div className="flex justify-between  font-bold mb-6">
+            <span>
+              <div className="flex items-center space-x-4">
+            <div className="text-3xl font-bold">
+              {categoryName} 
+            </div>
+            <div className="text-xl font-bold text-gray-600">
+              {subcategoryName} 
+            </div>
+          </div></span>
             <span>Ngày Đăng: {created_date ? new Date(created_date).toLocaleDateString() : "N/A"}</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center mt-3">{title}</h1>
