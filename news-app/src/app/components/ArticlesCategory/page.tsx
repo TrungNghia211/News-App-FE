@@ -34,7 +34,7 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
     fetchArticles();
   }, [categoryId]);
 
-  const displayedArticles = articles.slice(0, 10);
+  const displayedArticles = articles.slice(0, 6);
 
   return (
     <div className="overflow-x-auto ">
