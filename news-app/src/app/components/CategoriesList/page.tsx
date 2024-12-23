@@ -16,12 +16,17 @@ const CategoriesList = () => {
           },
         });
         const data = await response.json();
-        setCategories(data.slice(0, 9)); 
+        if (Array.isArray(data) && data.length > 0) {
+          const shuffledCategories = data.sort(() => 0.5 - Math.random());
+          setCategories(shuffledCategories.slice(0, 9)); 
+        } else {
+          console.error('No categories found or unexpected response format:', data);
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     };
-
+  
     fetchCategories();
   }, []);
 
@@ -38,9 +43,7 @@ const CategoriesList = () => {
         const data = await response.json();
         
         if (Array.isArray(data)) {
-          // Sắp xếp bài viết theo updated_date (từ mới nhất đến cũ nhất)
           const sortedArticles = data.sort((a, b) => new Date(b.updated_date) - new Date(a.updated_date));
-          // Lấy 5 bài viết mới nhất
           setArticles((prevArticles) => ({
             ...prevArticles,
             [categoryId]: sortedArticles.slice(0, 5), 
