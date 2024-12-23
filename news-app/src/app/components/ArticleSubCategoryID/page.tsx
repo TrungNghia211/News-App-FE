@@ -41,7 +41,14 @@ const ArticlesBySubCategory: React.FC<ArticlesBySubCategoryProps> = ({ subCatego
           return article.active && updatedDate >= oneWeekAgo;
         });
 
-        setArticles(filteredArticles);
+        // Sắp xếp bài viết theo updated_date từ mới nhất
+        const sortedArticles = filteredArticles.sort((a, b) => {
+          const dateA = new Date(a.updated_date);
+          const dateB = new Date(b.updated_date);
+          return dateB.getTime() - dateA.getTime(); // Sắp xếp giảm dần (mới nhất lên đầu)
+        });
+
+        setArticles(sortedArticles);
       } catch (err: any) {
         setError(err.message || "Failed to fetch articles.");
       } finally {

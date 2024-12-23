@@ -27,8 +27,13 @@ export default function Articles() {
         const activeArticles = data.filter(
           (article) => article.active === true
         );
-        setArticles(activeArticles);
-        setDisplayedArticles(activeArticles);
+        const sortedArticles = activeArticles.sort((a, b) => {
+          const dateA = new Date(a.updated_date);
+          const dateB = new Date(b.updated_date);
+          return dateB - dateA; 
+        });
+        setArticles(sortedArticles);
+        setDisplayedArticles(sortedArticles);
       } catch (err) {
         console.error("Error fetching articles:", err);
       }
@@ -142,15 +147,6 @@ export default function Articles() {
                 </Button>,
               ]}
             >
-              {/* <Link href={`/articles/${article.id}`}>
-                <Meta
-                  title={
-                    article.title.length > 50
-                      ? `${article.title.slice(0, 50)}...`
-                      : article.title
-                  }
-                />
-              </Link> */}
               <Link href={`/articles/${article.id}`}>
                 <Meta
                   title={<div className="break-words">{article.title}</div>}
