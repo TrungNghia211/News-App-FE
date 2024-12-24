@@ -53,10 +53,16 @@ const HotArticles: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-screen-sm mx-auto p-4">
+    <div className="w-full max-w-screen-sm mx-auto p-4 shadow-lg rounded-lg">
+      <h2 className="text-3xl bg-red-600 h-14 font-bold text-center text-white 
+        flex items-center justify-center transition-all duration-500 
+        hover:scale-125 hover:text-yellow-600 hover:rotate-3 hover:shadow-lg">
+        Tin Nổi Bật Trong Tuần
+      </h2>
+
       {articles.map((article) => (
         <div key={article.id} className="my-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start shadow-lg rounded-lg p-4">
             <div className="flex flex-col justify-between h-full">
               <h3
                 className="text-lg md:text-xl font-semibold cursor-pointer mb-2 text-left"
@@ -69,13 +75,12 @@ const HotArticles: React.FC = () => {
                 onClick={() => router.push(`/articles/${article.id}/`)}
                 dangerouslySetInnerHTML={{
                   __html:
-                    article.content.length > 70
-                      ? article.content.slice(0, 70) + "..."
+                    article.content.length > 40
+                      ? article.content.slice(0, 40) + "..."
                       : article.content,
                 }}
               />
             </div>
-
             <button
               className="md:ml-4 flex-shrink-0"
               onClick={() => router.push(`/articles/${article.id}/`)}

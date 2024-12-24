@@ -18,7 +18,8 @@ export default function Menu() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await http.get<any>("api/categories/");
+                const response = await http.get<any>("/api/categories/");
+                console.log(response.payload);
                 setCategories(response.payload);
             } catch (error) {
                 console.log("Error fetching categories:", error);

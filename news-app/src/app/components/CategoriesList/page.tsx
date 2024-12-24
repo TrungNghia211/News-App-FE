@@ -73,17 +73,17 @@ const CategoriesList = () => {
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-semibold mb-4 ml-5 text-green-500">Bài Viết Theo Danh Mục</h2>
+      <h2 className="text-2xl font-semibold mb-4 ml-5 text-green-500 ">Bài Viết Theo Danh Mục</h2>
       {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="w-full mb-8">
-          <div className="grid grid-cols-3 gap-4">
+        <div key={rowIndex} className="w-full mb-8 ">
+          <div className="grid grid-cols-3 gap-4 ">
             {row.map((category) => (
-              <div key={category.id} className=" p-4 rounded-lg">
+              <div key={category.id} className=" p-4    ">
                 <h3 className="text-2xl mb-8 font-semibold text-center">{category.name}</h3>
                 <div>
                   {articles[category.id] ? (
                     articles[category.id].map((article) => (
-                        <div key={article.id} className="my-4">
+                        <div key={article.id} className="my-4  shadow-lg rounded-lg ">
                           <div className="grid grid-cols-1 md:grid-cols-5 gap-5 items-start">
                             <div className="flex flex-col col-span-3 justify-between">
                                 <Link href={`/articles/${article.id}`}>
@@ -96,14 +96,14 @@ const CategoriesList = () => {
                                     className="text-gray-600 text-left hover:cursor-pointer flex-grow"
                                     dangerouslySetInnerHTML={{
                                     __html:
-                                        article.content.length > 270
-                                        ? article.content.slice(0, 270) + "..."
+                                        article.content.length > 180
+                                        ? article.content.slice(0, 180) + "..."
                                         : article.content,
                                     }}
                                 />
                                 </Link>
                             </div>
-                            <div className="col-span-2">
+                            <div className="col-span-2 flex justify-center items-center text-center">
                                 <Link href={`/articles/${article.id}`}>
                                     <img
                                         alt={article.title}
@@ -111,7 +111,8 @@ const CategoriesList = () => {
                                         className="h-48 w-full object-cover rounded-lg"
                                     />
                                 </Link>
-                                </div>
+                            </div>
+
                             </div>
                         </div>
                       ))

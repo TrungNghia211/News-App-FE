@@ -59,9 +59,14 @@ const NewArticles: React.FC = () => {
   
 
   return (
-    <div className="w-full max-w-screen-sm mx-auto p-4">
+    <div className="w-full max-w-screen-sm mx-auto p-4 shadow-lg rounded-lg">
+      <h2 className="text-3xl h-14 font-bold text-center  flex items-center justify-center bg-yellow-400 text-red-600
+        transform transition duration-500 ease-in-out hover:scale-110 hover:text-blue-700
+        hover:shadow-lg hover:shadow-blue-400">
+        Tin Mới
+      </h2>
       {articles.map((article) => (
-        <div key={article.id} className="my-4">
+        <div key={article.id} className=" shadow-lg rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <div className="flex flex-col justify-between h-full">
               <h3
@@ -75,8 +80,8 @@ const NewArticles: React.FC = () => {
                 onClick={() => router.push(`/articles/${article.id}/`)}
                 dangerouslySetInnerHTML={{
                   __html:
-                    article.content.length > 70  
-                      ? article.content.slice(0, 70 ) + "..."
+                    article.content.length > 40   
+                      ? article.content.slice(0, 40) + "..."
                       : article.content,
                 }}
               />

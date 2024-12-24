@@ -30,7 +30,7 @@ export default function CategoryManager() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await http.get<any>("api/categories/");
+                const response = await http.get<any>("/api/categories/");
                 setCategories(response.payload);
             } catch (error) {
                 console.log("Error fetching categories:", error);
@@ -50,7 +50,7 @@ export default function CategoryManager() {
     };
 
     const handleDeleteCategory = async (id: number) => {
-        const result = await http.delete<any>(`api/categories/${id}/`);
+        const result = await http.delete<any>(`/api/categories/${id}/`);
         setCategories(categories.filter(c => c.id !== id));
         if (paginatedCategories.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -62,7 +62,7 @@ export default function CategoryManager() {
             name: data.name,
             description: data.description,
         }
-        const result = await http.post<any>('api/categories/', JSON.stringify(body));
+        const result = await http.post<any>('/api/categories/', JSON.stringify(body));
         const newCategory = result.payload;
         setCategories(prevCategories => [...prevCategories, newCategory]);
         console.log('cate: ', categories)
@@ -78,7 +78,7 @@ export default function CategoryManager() {
                     sub: newSubcategoryNames[categoryId].trim(),
                     category: categoryId,
                 }
-                const result = await http.post<any>('api/subcategories/', JSON.stringify(body));
+                const result = await http.post<any>('/api/subcategories/', JSON.stringify(body));
                 if (result.status === 201) {
                     const newSubcategory = result.payload;
                     setCategories(categories.map(c =>
@@ -103,14 +103,14 @@ export default function CategoryManager() {
             name: data.name,
             description: data.description,
         }
-        const result = await http.put<any>(`api/categories/${isEditingCategory.id}/`, JSON.stringify(body));
+        const result = await http.put<any>(`/api/categories/${isEditingCategory.id}/`, JSON.stringify(body));
         const updatedCategory = result.payload;
         setCategories(categories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
         setIsEditingCategory(null)
     }
 
     const handleDeleteSubcategory = async (categoryId: number, subcategoryId: number) => {
-        const result = await http.delete<any>(`api/subcategories/${subcategoryId}/`);
+        const result = await http.delete<any>(`/api/subcategories/${subcategoryId}/`);
         setCategories(prevCategories => prevCategories.map(c =>
             c.id === categoryId
                 ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subcategoryId) }
