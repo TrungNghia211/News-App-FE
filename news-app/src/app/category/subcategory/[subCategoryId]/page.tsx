@@ -2,7 +2,7 @@
 
 import ArticlesByCategory from "@/app/components/ArticlesCategory/page";
 import ArticlesBySubCategory from "@/app/components/ArticleSubCategoryID/page";
-import Header from "@/app/components/Header/page";
+import Header from "@/app/components/Header";
 import HotArticles from "@/app/components/HotArticles/page";
 import MenuComponent from "@/app/components/Menu/page";
 import NewArticles from "@/app/components/NewArticles/page";
@@ -11,11 +11,11 @@ import { useEffect, useState } from "react";
 
 export default function CategoryPage() {
   const params = useParams();
-  const subCategoryId = decodeURIComponent(params.subCategoryId || ''); 
+  const subCategoryId = decodeURIComponent(params.subCategoryId || '');
   const [subcategoryName, setSubCategoryName] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string | null>(null);
-  const [categoryId, setCategoryId] = useState<number | null>(null); 
-  const [articles, setArticles] = useState<any[]>([]); 
+  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,7 +71,7 @@ export default function CategoryPage() {
         throw new Error("Failed to fetch articles");
       }
       const data = await response.json();
-      setArticles(data); 
+      setArticles(data);
     } catch (error) {
       setError("Error fetching articles");
     } finally {
@@ -83,7 +83,7 @@ export default function CategoryPage() {
     <>
       <Header />
       <MenuComponent />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
         <div className="p-4 rounded-lg">
           <h2 className="text-2xl font-bold text-center mt-20 text-green-500">Tin Mới</h2>
@@ -94,10 +94,10 @@ export default function CategoryPage() {
         <div className="p-4 rounded-lg col-span-2 w-full">
           <div className="flex items-center space-x-4">
             <div className="text-3xl font-bold">
-              {categoryName} 
+              {categoryName}
             </div>
             <div className="text-xl font-bold text-gray-600">
-              {subcategoryName} 
+              {subcategoryName}
             </div>
           </div>
           <ArticlesBySubCategory subCategoryId={subCategoryId} />

@@ -1,5 +1,4 @@
 import { Button, Form, Input } from "antd";
-import React from "react";
 import { apiFetch } from "../../../../../utils/api";
 
 const formItemLayout = {
@@ -20,7 +19,8 @@ const formItemLayoutWithOutLabel = {
   },
 };
 
-const FormAddEdit = ({ form, currentCategory, onSave }) => {
+const FormAddEdit = ({ form }) => {
+
   const handleSubmit = async (values) => {
     const { name, description } = values;
 
@@ -36,7 +36,7 @@ const FormAddEdit = ({ form, currentCategory, onSave }) => {
         categoryPayload
       );
 
-      onSave();
+      // onSave();
     } catch (error) {
       console.error("Error saving category:", error);
     }
@@ -68,11 +68,6 @@ const FormAddEdit = ({ form, currentCategory, onSave }) => {
         <Input placeholder="Enter category description" />
       </Form.Item>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit">
-          Add Category
-        </Button>
-      </Form.Item>
     </Form>
   );
 };

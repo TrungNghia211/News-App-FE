@@ -4,7 +4,7 @@ export const apiFetch = async (
   payload = null,
   token = null
 ) => {
-  const baseUrl = "http://localhost:8000";
+  const baseUrl = "http://127.0.0.1:8000";
   const url = `${baseUrl}${endpoint}`;
 
   try {
