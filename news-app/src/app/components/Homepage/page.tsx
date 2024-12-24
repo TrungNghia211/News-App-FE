@@ -61,7 +61,6 @@ const HomePage = () => {
         return updatedDate >= sevenDaysAgo;
       });
 
-      // Chọn ngẫu nhiên 5 bài
       const randomArticles = [];
       while (randomArticles.length < 5 && recentArticles.length > 0) {
         const randomIndex = Math.floor(Math.random() * recentArticles.length);
@@ -77,18 +76,17 @@ const HomePage = () => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
-        <div className="p-4 rounded-lg">
-          <h2 className="text-2xl font-bold text-center text-green-500 mt-6">Tin Mới</h2>
+        <div className="p-4 rounded-lg border-r-2">
           <div>
             <NewArticles />
           </div>
         </div>
-        <div className="p-4 rounded-lg col-span-2 w-full">
-          <div className="w-full max-w-screen-xl mx-auto p-4 ">
+        <div className="p-4 rounded-lg col-span-2 w-full border-r-2">
+          <div className="w-full max-w-screen-xl mx-auto p-4 shadow-lg rounded-lg p-4">
             {relatedArticles.length > 0 ? (
               relatedArticles.map((article) => (
                 <div key={article.id} className="my-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start bg-gray-50 shadow-lg rounded-lg">
                     <div className="flex flex-col col-span-2 justify-between">
                       <Link href={`/articles/${article.id}`}>
                         <h3 className="text-lg md:text-xl font-semibold cursor-pointer mb-2 text-left">
@@ -122,10 +120,7 @@ const HomePage = () => {
             ) : null}
           </div>
         </div>
-        <div className="p-4 rounded-lg">
-          <h2 className="text-2xl font-bold text-center text-red-600 mt-6">
-            Tin Nổi Bật Trong Tuần
-          </h2>
+        <div className="p-4 rounded-lg">          
           <div>
             <HotArticles />
           </div>

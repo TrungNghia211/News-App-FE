@@ -89,7 +89,6 @@ export default function Articles() {
 
   return (
     <div className="p-4">
-      <Header />
       <div className="flex justify-between items-center mb-4">
         <Title level={2}>List Articles </Title>
         <div className="flex items-center">
@@ -101,9 +100,9 @@ export default function Articles() {
           />
           <Button
             type="primary"
-            icon={<PlusOutlined />}
+            // icon={<PlusOutlined />}
             onClick={handleAddNew}
-            className="bg-yellow-400 text-white text-lg py-2 px-4"
+            className="bg-yellow-400 text-white text-lg py-2 px-4 w-auto flex items-center justify-center mx-auto"
           >
             Add New
           </Button>

@@ -9,6 +9,7 @@ import { clientSessionToken } from "@/lib/http";
 import ArticlesByCategory from "@/app/components/ArticlesCategory/page";
 import HotArticles from "@/app/components/HotArticles/page";
 import NewArticles from "@/app/components/NewArticles/page";
+import Menu from "@/app/components/Menu";
 
 
 interface Article {
@@ -124,7 +125,8 @@ const ArticleDetail = () => {
   return (
     <>
       <Header />
-      <MenuComponent />
+      {/* <MenuComponent /> */}
+      <Menu/>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
         <div className="p-4 rounded-lg">
           <h2 className="text-2xl font-bold text-center mt-20 text-green-500">Tin Mới</h2>
