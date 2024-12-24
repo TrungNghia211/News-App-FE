@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row } from 'antd'; 
+import { Card, Col, Row } from 'antd';
 import Link from 'next/link';
 
 const { Meta } = Card;

@@ -3,6 +3,7 @@
 import ArticlesByCategory from "@/app/components/ArticlesCategoryID/page";
 import Header from "@/app/components/Header";
 import HotArticles from "@/app/components/HotArticles/page";
+import Menu from "@/app/components/Menu";
 import MenuComponent from "@/app/components/Menu/page";
 import NewArticles from "@/app/components/NewArticles/page";
 import { useParams } from "next/navigation";
@@ -56,7 +57,7 @@ export default function CategoryPage() {
   return (
     <>
       <Header />
-      <MenuComponent />
+      <Menu />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
         <div className="p-4 rounded-lg">
