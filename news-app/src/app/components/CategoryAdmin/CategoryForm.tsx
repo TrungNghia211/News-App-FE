@@ -7,15 +7,14 @@ import { Category } from '@/types/category';
 type CategoryFormData = Pick<Category, 'name' | 'description'>;
 
 interface CategoryFormProps {
-    onSubmit: (data: CategoryFormData) => void;
     initialData?: CategoryFormData;
+    categoryNameError?: string;
+    onSubmit: (data: CategoryFormData) => void;
 }
 
-export const CategoryForm: React.FC<CategoryFormProps> = ({ onSubmit, initialData }) => {
+export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData, categoryNameError, onSubmit }) => {
 
-    const { register, handleSubmit, formState: { errors } } = useForm<CategoryFormData>({
-        defaultValues: initialData
-    });
+    const { register, handleSubmit, formState: { errors } } = useForm<CategoryFormData>({ defaultValues: initialData });
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -25,6 +24,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ onSubmit, initialDat
                     placeholder="Tên danh mục"
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                {categoryNameError && <p className="text-red-500 text-sm mt-1">{categoryNameError}</p>}
             </div>
             <div>
                 <Textarea

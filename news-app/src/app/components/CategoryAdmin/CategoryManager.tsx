@@ -5,14 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import http from '@/lib/http';
-import { Pagination } from '@/app/components/Pagination';
+import { Pagination } from '@/app/components/CategoryAdmin/Pagination';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Category } from '@/types/category';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CategoryForm } from '@/app/components/CategoryForm';
+import { CategoryForm } from '@/app/components/CategoryAdmin/CategoryForm';
 import SearchBar from '@/app/components/SearchBar';
-import useCustomToast from '../../../utils/toast';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -25,9 +24,9 @@ export default function CategoryManager() {
     const [isEditingCategory, setIsEditingCategory] = useState<Category | null>(null);
     const [subcategoryErrors, setSubcategoryErrors] = useState<{ [key: number]: string | null }>({});
     const [newSubcategoryNames, setNewSubcategoryNames] = useState<{ [key: number]: string }>({});
+    const [categoryNameError, setCategoryNameError] = useState<string | null>(null);
 
     const totalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
-    const { success, error } = useCustomToast();
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -51,28 +50,47 @@ export default function CategoryManager() {
         setExpandedCategories(prev => prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]);
     };
 
+    const handleAddCategory = async (data: Pick<Category, 'name' | 'description'>) => {
+        try {
+            const body = {
+                name: data.name,
+                description: data.description,
+            }
+            const result = await http.post<any>('/api/categories/', JSON.stringify(body));
+            const newCategory = result.payload;
+            setCategories(prevCategories => [...prevCategories, newCategory]);
+            setIsAddingCategory(false);
+            const newTotalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
+            setCurrentPage(newTotalPages);
+            setCategoryNameError(null);
+        } catch (error) {
+            setCategoryNameError('Tên danh mục đã tồn tại');
+        }
+    }
+
+    const handleEditCategory = async (data: Pick<Category, 'name' | 'description'>) => {
+        try {
+            const body = {
+                name: data.name,
+                description: data.description,
+            }
+            const result = await http.put<any>(`/api/categories/${isEditingCategory.id}/`, JSON.stringify(body));
+            const updatedCategory = result.payload;
+            setCategories(categories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
+            setIsEditingCategory(null);
+            setCategoryNameError(null);
+        } catch (error) {
+            setCategoryNameError('Tên danh mục đã tồn tại');
+        }
+    }
+
     const handleDeleteCategory = async (id: number) => {
         const result = await http.delete<any>(`/api/categories/${id}/`);
-        success("Categories đã được xóa thành công.");
         setCategories(categories.filter(c => c.id !== id));
         if (paginatedCategories.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
         }
     };
-
-    const handleAddCategory = async (data: Pick<Category, 'name' | 'description'>) => {
-        const body = {
-            name: data.name,
-            description: data.description,
-        }
-        const result = await http.post<any>('/api/categories/', JSON.stringify(body));
-        const newCategory = result.payload;
-        success("Categories đã được tạo thành công.");
-        setCategories(prevCategories => [...prevCategories, newCategory]);
-        setIsAddingCategory(false);
-        const newTotalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
-        setCurrentPage(newTotalPages);
-    }
 
     const handleAddSubCategory = async (categoryId: number) => {
         if (newSubcategoryNames[categoryId].trim()) {
@@ -89,30 +107,16 @@ export default function CategoryManager() {
                             ? { ...c, subcategories: [...c.subcategories, newSubcategory] }
                             : c
                     ));
-                    success("Subcategories đã được tạo thành công.");
                     setNewSubcategoryNames(prev => ({ ...prev, [categoryId]: '' }));
                     setSubcategoryErrors(prev => ({ ...prev, [categoryId]: null }));
                 }
             } catch (error) {
-                error("Subcategories đã được tạo thất bại.");                
                 setSubcategoryErrors(prev => ({
                     ...prev,
                     [categoryId]: `Tên "${newSubcategoryNames[categoryId]}" đã tồn tại`,
                 }));
             }
         }
-    }
-
-    const handleEditCategory = async (data: Pick<Category, 'name' | 'description'>) => {
-        const body = {
-            name: data.name,
-            description: data.description,
-        }
-        const result = await http.put<any>(`/api/categories/${isEditingCategory.id}/`, JSON.stringify(body));
-        const updatedCategory = result.payload;
-        success("Categories đã được cập nhật thành công.");
-        setCategories(categories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
-        setIsEditingCategory(null)
     }
 
     const handleDeleteSubcategory = async (categoryId: number, subcategoryId: number) => {
@@ -122,8 +126,6 @@ export default function CategoryManager() {
                 ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subcategoryId) }
                 : c
         ));
-        success("Subcategories đã xóa thành công.");
-
     }
 
     return (
@@ -220,15 +222,17 @@ export default function CategoryManager() {
 
                     </Card>
                 ))}
+
                 <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Thêm danh mục mới</DialogTitle>
                             <DialogDescription></DialogDescription>
                         </DialogHeader>
-                        <CategoryForm onSubmit={handleAddCategory} />
+                        <CategoryForm onSubmit={handleAddCategory} categoryNameError={categoryNameError || undefined} />
                     </DialogContent>
                 </Dialog>
+
                 <Dialog open={!!isEditingCategory} onOpenChange={() => setIsEditingCategory(null)}>
                     <DialogContent>
                         <DialogHeader>
@@ -239,10 +243,12 @@ export default function CategoryManager() {
                             <CategoryForm
                                 onSubmit={handleEditCategory}
                                 initialData={{ name: isEditingCategory.name, description: isEditingCategory.description }}
+                                categoryNameError={categoryNameError || undefined}
                             />
                         )}
                     </DialogContent>
                 </Dialog>
+
             </div>
             {categories.length > 6 && (
                 <Pagination
