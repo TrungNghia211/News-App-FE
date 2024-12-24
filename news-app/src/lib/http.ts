@@ -57,8 +57,6 @@ const request = async <Response>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url:
         ...options,
     });
 
-    console.log('res: ', res);
-
     const payload: Response = await res.json();
 
     const data = {
