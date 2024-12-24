@@ -12,6 +12,7 @@ import { Category } from '@/types/category';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CategoryForm } from '@/app/components/CategoryForm';
 import SearchBar from '@/app/components/SearchBar';
+import useCustomToast from '../../../utils/toast';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -26,6 +27,7 @@ export default function CategoryManager() {
     const [newSubcategoryNames, setNewSubcategoryNames] = useState<{ [key: number]: string }>({});
 
     const totalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
+    const { success, error } = useCustomToast();
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -51,6 +53,7 @@ export default function CategoryManager() {
 
     const handleDeleteCategory = async (id: number) => {
         const result = await http.delete<any>(`/api/categories/${id}/`);
+        success("Categories đã được xóa thành công.");
         setCategories(categories.filter(c => c.id !== id));
         if (paginatedCategories.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -64,8 +67,8 @@ export default function CategoryManager() {
         }
         const result = await http.post<any>('/api/categories/', JSON.stringify(body));
         const newCategory = result.payload;
+        success("Categories đã được tạo thành công.");
         setCategories(prevCategories => [...prevCategories, newCategory]);
-        console.log('cate: ', categories)
         setIsAddingCategory(false);
         const newTotalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
         setCurrentPage(newTotalPages);
@@ -86,10 +89,12 @@ export default function CategoryManager() {
                             ? { ...c, subcategories: [...c.subcategories, newSubcategory] }
                             : c
                     ));
+                    success("Subcategories đã được tạo thành công.");
                     setNewSubcategoryNames(prev => ({ ...prev, [categoryId]: '' }));
                     setSubcategoryErrors(prev => ({ ...prev, [categoryId]: null }));
                 }
             } catch (error) {
+                error("Subcategories đã được tạo thất bại.");                
                 setSubcategoryErrors(prev => ({
                     ...prev,
                     [categoryId]: `Tên "${newSubcategoryNames[categoryId]}" đã tồn tại`,
@@ -105,6 +110,7 @@ export default function CategoryManager() {
         }
         const result = await http.put<any>(`/api/categories/${isEditingCategory.id}/`, JSON.stringify(body));
         const updatedCategory = result.payload;
+        success("Categories đã được cập nhật thành công.");
         setCategories(categories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
         setIsEditingCategory(null)
     }
@@ -116,6 +122,8 @@ export default function CategoryManager() {
                 ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subcategoryId) }
                 : c
         ));
+        success("Subcategories đã xóa thành công.");
+
     }
 
     return (

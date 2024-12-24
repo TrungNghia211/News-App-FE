@@ -76,10 +76,10 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
   }
 
   return (
-    <div className="w-full max-w-screen-xl mx-auto p-4">
+    <div className="w-full max-w-screen-xl mx-auto p-4 shadow-lg rounded-lg">
       {displayedArticles.map((article) => (
         <div key={article.id} className="my-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start shadow-lg rounded-lg p-4">
             <div className="flex flex-col col-span-2 justify-between ">
               <Link href={`/articles/${article.id}`}>
                 <h3 className="text-lg md:text-xl font-semibold cursor-pointer mb-2 text-left">

@@ -88,7 +88,6 @@ export default function CategoryPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
         <div className="p-4 rounded-lg">
-          <h2 className="text-2xl font-bold text-center mt-20 text-green-500">Tin Mới</h2>
           <div>
             <NewArticles />
           </div>
@@ -105,7 +104,6 @@ export default function CategoryPage() {
           <ArticlesBySubCategory subCategoryId={subCategoryId} />
         </div>
         <div className="p-4 rounded-lg">
-          <h2 className="text-2xl font-bold text-center text-red-600 mt-20">Tin Nổi Bật Trong Tuần</h2>
           <div>
             <HotArticles />
           </div>

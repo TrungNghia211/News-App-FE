@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { clientSessionToken } from "@/lib/http";
-import Header from "@/app/components/Header/page";
-import MenuComponent from "@/app/components/Menu/page";
 import { useRouter } from "next/navigation";
 import useCustomToast from "../../../../utils/toast";
 import CommentedList from "@/app/components/CommentUser/page";
+import Header from "@/app/components/Header";
+import Menu from "@/app/components/Menu";
 
 export default function ProfilePage({ params }) {
   const { id } = params;
@@ -99,7 +99,7 @@ export default function ProfilePage({ params }) {
   return (
     <>
       <Header />
-      <MenuComponent />
+      <Menu />
       <div className="p-4">
         <div className="p-4 mb-4">
           <h2 className="text-3xl font-semibold mb-4">User Profile</h2>
