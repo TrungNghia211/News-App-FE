@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Spin } from "antd";
+import { Spin, Pagination } from "antd";
 import Link from "next/link";
 
 interface Article {
@@ -19,6 +19,8 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize] = useState<number>(10);
 
   useEffect(() => {
     if (!categoryId) return;
@@ -30,7 +32,8 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
           `http://127.0.0.1:8000/api/articles/category/${categoryId}/`
         );
         if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
+          console.log("Chưa có bài viết");
+          return;
         }
 
         const data: Article[] = await response.json();
@@ -41,11 +44,10 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
           return article.active && updatedDate >= oneWeekAgo;
         });
 
-        // Sắp xếp các bài viết theo updated_date từ mới nhất
         const sortedArticles = filteredArticles.sort((a, b) => {
           const dateA = new Date(a.updated_date);
           const dateB = new Date(b.updated_date);
-          return dateB.getTime() - dateA.getTime(); // Sắp xếp giảm dần (mới nhất lên đầu)
+          return dateB.getTime() - dateA.getTime(); 
         });
 
         setArticles(sortedArticles);
@@ -59,7 +61,14 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
     fetchArticles();
   }, [categoryId]);
 
-  const displayedArticles = articles.slice(0, 10);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const displayedArticles = articles.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   if (loading) {
     return (
@@ -91,7 +100,7 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
                   className="text-gray-600 text-left hover:cursor-pointer flex-grow"
                   dangerouslySetInnerHTML={{
                     __html:
-                      article.content.length > 330 
+                      article.content.length > 330
                         ? article.content.slice(0, 330) + "..."
                         : article.content,
                   }}
@@ -111,6 +120,19 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
           </div>
         </div>
       ))}
+
+      {articles.length > 10 && (
+        <div className="flex justify-center mt-8">
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={articles.length}
+            onChange={handlePageChange}
+            showSizeChanger={false} 
+            showQuickJumper
+          />
+        </div>
+      )}
     </div>
   );
 };

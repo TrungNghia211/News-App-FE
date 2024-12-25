@@ -98,8 +98,8 @@ const HomePage = () => {
                           className="text-gray-600 text-left hover:cursor-pointer flex-grow"
                           dangerouslySetInnerHTML={{
                             __html:
-                              article.content.length > 330
-                                ? article.content.slice(0, 330) + "..."
+                              article.content.length > 300
+                                ? article.content.slice(0, 300) + "..."
                                 : article.content,
                           }}
                         />
@@ -132,3 +132,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

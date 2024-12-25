@@ -70,7 +70,7 @@ const HotArticles: React.FC = () => {
               >
                 {article.title}
               </h3>
-              <p
+              {/* <p
                 className="text-gray-600 text-left hover:cursor-pointer flex-1"
                 onClick={() => router.push(`/articles/${article.id}/`)}
                 dangerouslySetInnerHTML={{
@@ -79,7 +79,7 @@ const HotArticles: React.FC = () => {
                       ? article.content.slice(0, 40) + "..."
                       : article.content,
                 }}
-              />
+              /> */}
             </div>
             <button
               className="md:ml-4 flex-shrink-0"

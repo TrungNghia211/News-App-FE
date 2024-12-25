@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Spin } from "antd";
+import { Spin, Pagination } from "antd";
 import Link from "next/link";
 
 interface Article {
@@ -19,7 +19,8 @@ const ArticlesBySubCategory: React.FC<ArticlesBySubCategoryProps> = ({ subCatego
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize] = useState<number>(10);
   useEffect(() => {
     if (!subCategoryId) return;
 
@@ -59,7 +60,14 @@ const ArticlesBySubCategory: React.FC<ArticlesBySubCategoryProps> = ({ subCatego
     fetchArticles();
   }, [subCategoryId]);
 
-  const displayedArticles = articles.slice(0, 10);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const displayedArticles = articles.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   if (loading) {
     return (
@@ -111,6 +119,18 @@ const ArticlesBySubCategory: React.FC<ArticlesBySubCategoryProps> = ({ subCatego
           </div>
         </div>
       ))}
+      {articles.length > 10 && (
+              <div className="flex justify-center mt-8">
+                <Pagination
+                  current={currentPage}
+                  pageSize={pageSize}
+                  total={articles.length}
+                  onChange={handlePageChange}
+                  showSizeChanger={false} 
+                  showQuickJumper
+                />
+              </div>
+            )}
     </div>
   );
 };

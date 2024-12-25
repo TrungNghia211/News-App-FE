@@ -96,8 +96,8 @@ const CategoriesList = () => {
                                     className="text-gray-600 text-left hover:cursor-pointer flex-grow"
                                     dangerouslySetInnerHTML={{
                                     __html:
-                                        article.content.length > 180
-                                        ? article.content.slice(0, 180) + "..."
+                                        article.content.length > 120
+                                        ? article.content.slice(0, 120) + "..."
                                         : article.content,
                                     }}
                                 />

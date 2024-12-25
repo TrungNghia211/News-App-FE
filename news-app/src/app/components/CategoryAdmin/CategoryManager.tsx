@@ -12,12 +12,14 @@ import { Category } from '@/types/category';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CategoryForm } from '@/app/components/CategoryAdmin/CategoryForm';
 import SearchBar from '@/app/components/SearchBar';
+import useCustomToast from '../../../../utils/toast';
 
 const ITEMS_PER_PAGE = 6;
 
 export default function CategoryManager() {
 
     const [categories, setCategories] = useState([]);
+    const [displayedCategories, setDisplayedCategories] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
     const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -26,13 +28,16 @@ export default function CategoryManager() {
     const [newSubcategoryNames, setNewSubcategoryNames] = useState<{ [key: number]: string }>({});
     const [categoryNameError, setCategoryNameError] = useState<string | null>(null);
 
-    const totalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
+    const ITEMS_PER_PAGE = 6;
+    const totalPages = Math.ceil(displayedCategories.length / ITEMS_PER_PAGE);
+    const { success, error } = useCustomToast();
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const response = await http.get<any>("/api/categories/");
                 setCategories(response.payload);
+                setDisplayedCategories(response.payload);
             } catch (error) {
                 console.log("Error fetching categories:", error);
             }
@@ -42,8 +47,8 @@ export default function CategoryManager() {
 
     const paginatedCategories = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        return categories.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [categories, currentPage]);
+        return displayedCategories.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      }, [displayedCategories, currentPage]);
 
 
     const toggleCategory = (categoryId: number) => {
@@ -127,6 +132,17 @@ export default function CategoryManager() {
                 : c
         ));
     }
+    const handleSearch = (searchValue) => {
+        if (searchValue) {
+          const filteredCategories = categories.filter((category) =>
+            category.name.toLowerCase().includes(searchValue.toLowerCase())
+          );
+          setDisplayedCategories(filteredCategories);
+        } else {
+          setDisplayedCategories(categories);
+        }
+        setCurrentPage(1); 
+      };
 
     return (
         <>
@@ -138,7 +154,7 @@ export default function CategoryManager() {
                     >
                         Thêm danh mục mới
                     </Button>
-                    <SearchBar />
+                    <SearchBar  onSearch={handleSearch} />
                 </div>
                 {paginatedCategories.map(category => (
                     <Card key={category.id} className="overflow-hidden">
@@ -250,13 +266,20 @@ export default function CategoryManager() {
                 </Dialog>
 
             </div>
-            {categories.length > 6 && (
+            {/* {categories.length > 6 && (
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
                 />
-            )}
+            )} */}
+            {displayedCategories.length > ITEMS_PER_PAGE && (
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
+        )}
         </>
     );
 };
