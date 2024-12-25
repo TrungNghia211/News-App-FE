@@ -173,7 +173,6 @@ const ArticlesEdit: React.FC = () => {
 
   return (
     <div>
-      <Header />
       <div className="container mx-auto p-6">
         <h2 className="text-2xl font-bold mb-4">Edit Article</h2>
         <form onSubmit={handleEditArticle} className="space-y-4">

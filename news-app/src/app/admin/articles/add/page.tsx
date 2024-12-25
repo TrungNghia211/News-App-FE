@@ -52,7 +52,6 @@ const ArticlesAdd = () => {
     fetchCategories();
   }, []);
 
-  // Fetch subcategories when category changes
   useEffect(() => {
     if (category) {
       const fetchSubCategories = async () => {
@@ -116,7 +115,6 @@ const ArticlesAdd = () => {
 
   return (
     <>
-      <Header />
       <div className="container mx-auto p-6">
         <h2 className="text-2xl font-bold mb-4">Add New Article</h2>
         <form onSubmit={handleAddArticle} className="space-y-4">

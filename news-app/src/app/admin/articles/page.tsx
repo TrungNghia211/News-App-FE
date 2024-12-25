@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { Avatar, Card, Row, Col, Typography, Button, Modal, Input } from "antd";
+import { Avatar, Card, Row, Col, Typography, Button, Modal, Input, Pagination } from "antd";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../../components/Header";
@@ -18,6 +18,8 @@ export default function Articles() {
   const [displayedArticles, setDisplayedArticles] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize] = useState<number>(30);
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -33,7 +35,7 @@ export default function Articles() {
           return dateB - dateA; 
         });
         setArticles(sortedArticles);
-        setDisplayedArticles(sortedArticles);
+        setDisplayedArticles(sortedArticles.slice(0, pageSize)); 
       } catch (err) {
         console.error("Error fetching articles:", err);
       }
@@ -41,12 +43,22 @@ export default function Articles() {
     fetchArticles();
   }, []);
 
-  const onSearch = debounce((value) => {
-    const filteredArticles = articles.filter((article) =>
-      article.title.toLowerCase().includes(value.toLowerCase())
+  const filteredArticles = useMemo(() => {
+    return articles.filter((article) =>
+      article.title.toLowerCase().includes(searchValue.toLowerCase())
     );
-    setDisplayedArticles(filteredArticles);
+  }, [articles, searchValue]);
+
+  const onSearch = debounce((value) => {
+    setSearchValue(value);
   }, 500);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const offset = (page - 1) * pageSize;
+    const paginatedArticles = filteredArticles.slice(offset, offset + pageSize);
+    setDisplayedArticles(paginatedArticles);
+  };
 
   const handleAddNew = () => {
     router.push("/admin/articles/add");
@@ -62,9 +74,11 @@ export default function Articles() {
       await fetch(`http://localhost:8000/api/articles/${articleToDelete}/`, {
         method: "DELETE",
       });
-      setDisplayedArticles(
-        displayedArticles.filter((article) => article.id !== articleToDelete)
+      const updatedArticles = articles.filter(
+        (article) => article.id !== articleToDelete
       );
+      setArticles(updatedArticles);
+      setDisplayedArticles(updatedArticles.slice(0, pageSize));
       setIsDeleteModalVisible(false);
       setArticleToDelete(null);
     } catch (err) {
@@ -81,12 +95,6 @@ export default function Articles() {
     router.push(`/admin/articles/edit/${articleId}`);
   };
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchValue(value);
-    onSearch(value);
-  };
-
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -95,12 +103,11 @@ export default function Articles() {
           <Search
             placeholder="Search articles"
             value={searchValue}
-            onChange={handleSearchChange}
+            onChange={(e) => onSearch(e.target.value)}
             className="mr-4 w-72 text-lg p-3"
           />
           <Button
             type="primary"
-            // icon={<PlusOutlined />}
             onClick={handleAddNew}
             className="bg-yellow-400 text-white text-lg py-2 px-4 w-auto flex items-center justify-center mx-auto"
           >
@@ -108,6 +115,7 @@ export default function Articles() {
           </Button>
         </div>
       </div>
+
       <Row gutter={16} justify="start">
         {displayedArticles.map((article) => (
           <Col
@@ -120,7 +128,7 @@ export default function Articles() {
             className="mb-4"
           >
             <Card
-              className="w-full h-full flex flex-col justify-between "
+              className="w-full h-full flex flex-col justify-between"
               cover={
                 <img
                   alt={article.title}
@@ -155,6 +163,19 @@ export default function Articles() {
           </Col>
         ))}
       </Row>
+
+      {filteredArticles.length > pageSize && (
+        <div className="flex justify-center mt-8">
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={filteredArticles.length}
+            onChange={handlePageChange}
+            showSizeChanger={false}
+            showQuickJumper
+          />
+        </div>
+      )}
 
       <Modal
         title="Xác nhận xóa"
