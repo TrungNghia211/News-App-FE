@@ -1,4 +1,4 @@
-import CategoryManager from "@/app/components/CategoryAdmin/CategoryManager";
+import CategoryManager from "@/app/components/AdminCategory/CategoryManager";
 
 export default function Category() {
   return (

@@ -6,7 +6,6 @@ export default function Home() {
   return (
     <div>
       <Header />
-      {/* <MenuComponent /> */}
       <Menu />
       <Homepage />
     </div>

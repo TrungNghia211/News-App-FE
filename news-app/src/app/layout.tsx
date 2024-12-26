@@ -23,8 +23,8 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
 
-  const cookieStore = await cookies()
-  const sessionToken = cookieStore.get('sessionToken')
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('sessionToken');
 
   return (
     <html lang="en">
@@ -36,7 +36,6 @@ export default async function RootLayout({ children }) {
         </AppProvider>
         <ToastContainer position="bottom-right" autoClose={5000} />
         <Toaster />
-
       </body>
     </html>
   );
