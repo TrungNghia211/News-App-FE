@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Spin, Pagination } from "antd";
 import Link from "next/link";
+import { apiFetch } from "../../../../utils/api";
+
 
 interface Article {
   id: number;
@@ -23,32 +25,26 @@ const ArticlesBySubCategory: React.FC<ArticlesBySubCategoryProps> = ({ subCatego
   const [pageSize] = useState<number>(10);
   useEffect(() => {
     if (!subCategoryId) return;
-
+  
     const fetchArticles = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/articles/subcategory/${subCategoryId}/`
-        );
-        if (!response.ok) {
-          console.log("Chưa có bài viết");
-          return;
-      }
-
-        const data: Article[] = await response.json();
+        const data: Article[] = await apiFetch(`/api/articles/subcategory/${subCategoryId}/`);
+  
         const currentTime = new Date();
         const oneWeekAgo = new Date(currentTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
         const filteredArticles = data.filter((article) => {
           const updatedDate = new Date(article.updated_date);
           return article.active && updatedDate >= oneWeekAgo;
         });
-
+  
         const sortedArticles = filteredArticles.sort((a, b) => {
           const dateA = new Date(a.updated_date);
           const dateB = new Date(b.updated_date);
-          return dateB.getTime() - dateA.getTime(); 
+          return dateB.getTime() - dateA.getTime();
         });
-
+  
         setArticles(sortedArticles);
       } catch (err: any) {
         setError(err.message || "Failed to fetch articles.");
@@ -56,9 +52,10 @@ const ArticlesBySubCategory: React.FC<ArticlesBySubCategoryProps> = ({ subCatego
         setLoading(false);
       }
     };
-
+  
     fetchArticles();
   }, [subCategoryId]);
+  
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/Header";
+import { apiFetch } from "../../../../../utils/api";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
@@ -32,15 +33,10 @@ const ArticlesAdd = () => {
   const router = useRouter();
   const {success , error} = useCustomToast();
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/categories/");
-        if (!res.ok) {
-          throw new Error("Failed to fetch categories");
-        }
-        const categories: Category[] = await res.json();
+        const categories = await apiFetch("/api/categories/"); 
         setFetchedCategories(categories);
         if (categories.length > 0) {
           setCategory(categories[0]);
@@ -49,6 +45,7 @@ const ArticlesAdd = () => {
         console.error("Failed to fetch categories:", error);
       }
     };
+
     fetchCategories();
   }, []);
 
@@ -56,16 +53,13 @@ const ArticlesAdd = () => {
     if (category) {
       const fetchSubCategories = async () => {
         try {
-          const res = await fetch(`http://127.0.0.1:8000/api/subcategories/category/${category.id}/`);
-          if (!res.ok) {
-            throw new Error("Failed to fetch subcategories");
-          }
-          const subcategories: SubCategory[] = await res.json();
+          const subcategories = await apiFetch(`/api/subcategories/category/${category.id}/`);
           setFetchedSubCategories(subcategories);
         } catch (error) {
           console.error("Failed to fetch subcategories:", error);
         }
       };
+
       fetchSubCategories();
     }
   }, [category]);
@@ -78,26 +72,17 @@ const ArticlesAdd = () => {
         image_url:
           file
             ? await uploadImageToFirebase(file)
-              .then((url) => url)
-              .catch(() => "")
-            :
-            imageUrl,
+                .then((url) => url)
+                .catch(() => "")
+            : imageUrl,
         content: content,
         category_id: category?.id || 0,
         subcategory_id: subCategory?.id || 0,
         author: author,
         active: true,
       };
-
-      const res = await fetch("http://127.0.0.1:8000/api/articles/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
+      const res = await apiFetch("/api/articles/", "POST", payload);
+      if (res) {
         success("Thêm Bài Viết Thành Công !");
         router.push("/admin/articles");
       } else {
@@ -142,7 +127,7 @@ const ArticlesAdd = () => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block mb-2">Upload Image:</label>
             <div className="flex items-center mb-4">
               <input
@@ -200,8 +185,24 @@ const ArticlesAdd = () => {
                 style={{ width: "100px" }}
               />
             )}
+          </div> */}
+          <div>
+            <label className="block mb-2">Upload Image:</label>
+            <input
+              type="text"
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              placeholder="Enter image URL"
+            />
+            {imageUrl && (
+              <img
+                src={imageUrl}
+                alt="Uploaded"
+                className="mt-2"
+                style={{ width: "100px" }}
+              />
+            )}
           </div>
-
           <div>
             <label className="block mb-2">Select Category:</label>
             <select
