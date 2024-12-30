@@ -5,6 +5,8 @@ import NewArticles from "../NewArticles/page";
 import HotArticles from "../HotArticles/page";
 import Link from "next/link";
 import CategoriesList from "../CategoriesList/page";
+import { apiFetch } from "../../../../utils/api";
+
 
 const HomePage = () => {
   const [latestArticle, setLatestArticle] = useState(null);
@@ -13,18 +15,14 @@ const HomePage = () => {
   useEffect(() => {
     fetchLatestArticle();
   }, []);
-
+  
   const fetchLatestArticle = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/articles/all/", {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          "X-CSRFTOKEN":
-            "FyyuvwHWL7KLfd3D68cMzFqtVkrXNPRje4Sobn8uIP06fYhrNkCEN3HpvejZR71S",
-        },
-      });
-      const articles = await response.json();
+      const response = await apiFetch(
+        "/api/articles/all/",
+        "GET"
+      );
+      const articles = response; 
       if (articles.length > 0) {
         const latest = articles.sort(
           (a, b) => new Date(b.created_date) - new Date(a.created_date)
@@ -36,38 +34,28 @@ const HomePage = () => {
       console.error("Error fetching latest article:", error);
     }
   };
-
+  
   const fetchRelatedArticles = async (categoryId) => {
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/articles/category/${categoryId}/`,
-        {
-          method: "GET",
-          headers: {
-            accept: "application/json",
-            "X-CSRFTOKEN":
-              "FyyuvwHWL7KLfd3D68cMzFqtVkrXNPRje4Sobn8uIP06fYhrNkCEN3HpvejZR71S",
-          },
-        }
-      );
-      const articles = await response.json();
-
-      // Lọc các bài viết trong 7 ngày qua
+      const response = await apiFetch(`/api/articles/category/${categoryId}/`, "GET");
+  
+      const articles = response; 
+  
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
+  
       const recentArticles = articles.filter((article) => {
         const updatedDate = new Date(article.updated_date);
         return updatedDate >= sevenDaysAgo;
       });
-
+  
       const randomArticles = [];
       while (randomArticles.length < 5 && recentArticles.length > 0) {
         const randomIndex = Math.floor(Math.random() * recentArticles.length);
         randomArticles.push(recentArticles.splice(randomIndex, 1)[0]);
       }
-
-      setRelatedArticles(randomArticles);
+  
+      setRelatedArticles(randomArticles); 
     } catch (error) {
       console.error("Error fetching related articles:", error);
     }

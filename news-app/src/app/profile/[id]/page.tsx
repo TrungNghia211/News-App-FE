@@ -7,6 +7,8 @@ import useCustomToast from "../../../../utils/toast";
 import CommentedList from "@/app/components/CommentUser/page";
 import Header from "@/app/components/Header";
 import Menu from "@/app/components/Menu";
+import { apiFetch } from "../../../../utils/api";
+
 
 export default function ProfilePage({ params }) {
   const { id } = params;
@@ -17,21 +19,44 @@ export default function ProfilePage({ params }) {
   const [error, setError] = useState(null);
   const {success} = useCustomToast();
   
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     try {
+  //       const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${sessionToken}`,
+  //         },
+  //       });
+
+  //       if (!res.ok) {
+  //         throw new Error("Failed to fetch user data");
+  //       }
+  //       const data = await res.json();
+
+        // setUserData({
+        //   email: data.email || "",
+        //   username: data.username || "",
+        //   phone: data.phone || "",
+        //   birthday: data.birthday || "",
+        //   address: data.address || "",
+        //   description: data.description || "",
+        // });
+  //     } catch (error) {
+  //       alert("Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
+  //       console.error("Error fetching user data:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchUserData();
+  // }, [id, sessionToken]);
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-        const data = await res.json();
-
+        const data = await apiFetch(`/api/users/${id}/`, "GET", null, sessionToken);
+        
         setUserData({
           email: data.email || "",
           username: data.username || "",
@@ -42,43 +67,41 @@ export default function ProfilePage({ params }) {
         });
       } catch (error) {
         alert("Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", error.message || error);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchUserData();
   }, [id, sessionToken]);
-
+  
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
+  
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionToken}`,
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (!res.ok) {
-        throw new Error("Không thể cập nhật thông tin người dùng");
+      const res = await apiFetch(
+        `/api/users/${id}/`, 
+        "PUT", 
+        userData, 
+        sessionToken
+      );
+      if (res) {
+        success("Thông tin đã được cập nhật thành công!");
+        router.push(`/profile/${id}`);
       }
-
-      success("Thông tin đã được cập nhật thành công!");
-      router.push(`/profile/${id}`);
     } catch (error) {
-      console.error("Lỗi khi cập nhật dữ liệu:", error);
-      alert("Đã xảy ra lỗi, vui lòng thử lại.");
+      console.error("Lỗi khi cập nhật dữ liệu:", error.message || error);
+      alert(error.message || "Đã xảy ra lỗi, vui lòng thử lại.");
     }
   };
+  
 
   if (loading) {
     return (

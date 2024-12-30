@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../../components/Header";
 import debounce from "lodash.debounce";
+import { clientSessionToken } from "@/lib/http";
+import jwt from 'jsonwebtoken';
+import { apiFetch } from "../../../../utils/api";
+import useCustomToast from "../../../../utils/toast";
+
 
 const { Meta } = Card;
 const { Title } = Typography;
@@ -20,28 +25,39 @@ export default function Articles() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize] = useState<number>(30);
+  const sessionToken = clientSessionToken.value;
+  const decoded = jwt.decode(sessionToken);
+  const {success} = useCustomToast();
 
   useEffect(() => {
-    const fetchArticles = async () => {
+    const fetchUserAndArticles = async () => {
+      if (!decoded) {
+        return router.push("/");
+      }
       try {
-        const res = await fetch("http://localhost:8000/api/articles/all/");
-        const data = await res.json();
-        const activeArticles = data.filter(
-          (article) => article.active === true
-        );
-        const sortedArticles = activeArticles.sort((a, b) => {
-          const dateA = new Date(a.updated_date);
-          const dateB = new Date(b.updated_date);
-          return dateB - dateA; 
-        });
-        setArticles(sortedArticles);
-        setDisplayedArticles(sortedArticles.slice(0, pageSize)); 
+        const user = await apiFetch(`/api/users/${decoded.user_id}/`);
+        if (user.is_staff === true) {
+          const data = await apiFetch("/api/articles/all/");
+          const activeArticles = data.filter((article) => article.active === true);
+          const sortedArticles = activeArticles.sort((a, b) => {
+            const dateA = new Date(a.updated_date);
+            const dateB = new Date(b.updated_date);
+            return dateB - dateA;
+          });
+  
+          setArticles(sortedArticles);
+          setDisplayedArticles(sortedArticles.slice(0, pageSize));
+        } else {
+          router.push("/");
+        }
       } catch (err) {
-        console.error("Error fetching articles:", err);
+        console.error("Error fetching user and articles:", err);
       }
     };
-    fetchArticles();
-  }, []);
+  
+    fetchUserAndArticles();
+  }, [decoded, router, pageSize]);
+  
 
   const filteredArticles = useMemo(() => {
     return articles.filter((article) =>
@@ -71,9 +87,7 @@ export default function Articles() {
 
   const handleDelete = async () => {
     try {
-      await fetch(`http://localhost:8000/api/articles/${articleToDelete}/`, {
-        method: "DELETE",
-      });
+      await apiFetch(`/api/articles/${articleToDelete}/`, "DELETE");
       const updatedArticles = articles.filter(
         (article) => article.id !== articleToDelete
       );
@@ -81,6 +95,8 @@ export default function Articles() {
       setDisplayedArticles(updatedArticles.slice(0, pageSize));
       setIsDeleteModalVisible(false);
       setArticleToDelete(null);
+      success("Xóa Bài Viết Thành Công !");
+      
     } catch (err) {
       console.error("Error deleting article:", err);
     }

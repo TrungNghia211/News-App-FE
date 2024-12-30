@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../components/Header";
 import "react-quill/dist/quill.snow.css";
 import useCustomToast from "../../../../../../utils/toast";
+import { apiFetch } from "../../../../../../utils/api";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
@@ -52,22 +53,16 @@ const ArticlesEdit: React.FC = () => {
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/articles/${articleId}/`);
+        const articleData: Article = await apiFetch(`/api/articles/${articleId}/`);
+        console.log("articleData:", articleData);
 
-        if (res.ok) {
-          const articleData: Article = await res.json();
-          console.log("articleData:", articleData);
-
-          setArticle(articleData);
-          setTitle(articleData.title);
-          setImageUrl(articleData.image_url);
-          setImageSource(articleData.image_file);
-          setCategory(articleData.category_id);
-          setSubCategory(articleData.subcategory_id);
-          setContent(articleData.content);
-        } else {
-          throw new Error("Failed to fetch article");
-        }
+        setArticle(articleData);
+        setTitle(articleData.title);
+        setImageUrl(articleData.image_url);
+        setImageSource(articleData.image_file);
+        setCategory(articleData.category_id);
+        setSubCategory(articleData.subcategory_id);
+        setContent(articleData.content);
       } catch (error) {
         console.error("Failed to fetch article:", error);
       }
@@ -75,18 +70,12 @@ const ArticlesEdit: React.FC = () => {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/categories/");
-        if (res.ok) {
-          const categoriesData: Category[] = await res.json();
-          setFetchedCategories(categoriesData);
-        } else {
-          throw new Error("Failed to fetch categories");
-        }
+        const categoriesData: Category[] = await apiFetch("/api/categories/");
+        setFetchedCategories(categoriesData);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
     };
-
 
     fetchArticle();
     fetchCategories();
@@ -105,17 +94,13 @@ const ArticlesEdit: React.FC = () => {
 
   const fetchSubCategories = async (categoryId: number) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/subcategories/category/${categoryId}/`);
-      if (res.ok) {
-        const subCategories: SubCategory[] = await res.json();
-        setSubOptions(subCategories);
-      } else {
-        throw new Error("Failed to fetch subcategories");
-      }
+      const subCategories: SubCategory[] = await apiFetch(`/api/subcategories/category/${categoryId}/`);
+      setSubOptions(subCategories);
     } catch (err) {
       console.error("Failed to fetch subcategories:", err);
     }
   };
+
   const handleEditArticle = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -131,15 +116,9 @@ const ArticlesEdit: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/articles/${articleId}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedArticle),
-      });
+      const res = await apiFetch(`/api/articles/${articleId}/`, "PUT", updatedArticle);
 
-      if (res.ok) {
+      if (res) {
         success("Cập Nhật Bài Viết Thành Công !");
         router.push("/admin/articles");
       } else {
@@ -188,7 +167,7 @@ const ArticlesEdit: React.FC = () => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block mb-2">Upload Image:</label>
             <div className="flex items-center mb-4">
               <input
@@ -258,8 +237,27 @@ const ArticlesEdit: React.FC = () => {
                 />
               </div>
             )}
+          </div> */}
+          <div>
+            <label className="block mb-2">Upload Image:</label>
+            <input
+              type="text"
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              placeholder="Enter image URL"
+            />
+            {imageUrl && (
+              <div className="mt-2">
+                <p>Image Preview:</p>
+                <img
+                  src={imageUrl}
+                  alt="Uploaded"
+                  className="mt-2"
+                  style={{ width: "100px" }}
+                />
+              </div>
+            )}
           </div>
-
           <div>
             <label className="block mb-2">Select Category:</label>
             <select

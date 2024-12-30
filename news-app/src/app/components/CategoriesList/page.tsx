@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import Link from "next/link";
+import { apiFetch } from '../../../../utils/api';
+
 
 const CategoriesList = () => {
   const [categories, setCategories] = useState([]);
@@ -8,14 +10,7 @@ const CategoriesList = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/categories/', {
-          method: 'GET',
-          headers: {
-            accept: 'application/json',
-            'X-CSRFTOKEN': 'g5TAPAEnqK0even0snQnivGAxVpKJGeRPBduvr5VnsgzvZBO9zgfwTXw7PhMNYoq',
-          },
-        });
-        const data = await response.json();
+        const data = await apiFetch('/api/categories/', 'GET', null, null);
         if (Array.isArray(data) && data.length > 0) {
           const shuffledCategories = data.sort(() => 0.5 - Math.random());
           setCategories(shuffledCategories.slice(0, 9)); 
@@ -28,19 +23,12 @@ const CategoriesList = () => {
     };
   
     fetchCategories();
-  }, []);
-
+  }, []); 
+  
   useEffect(() => {
     const fetchArticlesByCategory = async (categoryId) => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/articles/category/${categoryId}/`, {
-          method: 'GET',
-          headers: {
-            accept: 'application/json',
-            'X-CSRFTOKEN': 'g5TAPAEnqK0even0snQnivGAxVpKJGeRPBduvr5VnsgzvZBO9zgfwTXw7PhMNYoq',
-          },
-        });
-        const data = await response.json();
+        const data = await apiFetch(`/api/articles/category/${categoryId}/`, 'GET', null, null);
         
         if (Array.isArray(data)) {
           const sortedArticles = data.sort((a, b) => new Date(b.updated_date) - new Date(a.updated_date));
@@ -49,17 +37,18 @@ const CategoriesList = () => {
             [categoryId]: sortedArticles.slice(0, 5), 
           }));
         } else {
-          console.error('Expected an array, but got:', data);
+          console.error('Expected an array of articles, but got:', data);
         }
       } catch (error) {
         console.error('Error fetching articles for category:', error);
       }
     };
-
+  
     categories.forEach((category) => {
       fetchArticlesByCategory(category.id);
     });
-  }, [categories]);
+  }, [categories]); 
+  
 
   const chunkCategories = (categories, chunkSize) => {
     const chunks = [];

@@ -1,10 +1,12 @@
+
 'use client'
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit, Plus, ChevronUp, ChevronDown } from 'lucide-react';
-import http from '@/lib/http';
+import http, { clientSessionToken } from '@/lib/http';
 import { Pagination } from '@/app/components/CategoryAdmin/Pagination';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,6 +15,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { CategoryForm } from '@/app/components/CategoryAdmin/CategoryForm';
 import SearchBar from '@/app/components/SearchBar';
 import useCustomToast from '../../../../utils/toast';
+import jwt from 'jsonwebtoken';
+import { apiFetch } from '../../../../utils/api';
+
 
 const ITEMS_PER_PAGE = 6;
 
@@ -27,23 +32,37 @@ export default function CategoryManager() {
     const [subcategoryErrors, setSubcategoryErrors] = useState<{ [key: number]: string | null }>({});
     const [newSubcategoryNames, setNewSubcategoryNames] = useState<{ [key: number]: string }>({});
     const [categoryNameError, setCategoryNameError] = useState<string | null>(null);
+    const router = useRouter();
+    const sessionToken = clientSessionToken.value;
+    const decoded = jwt.decode(sessionToken);
 
     const ITEMS_PER_PAGE = 6;
     const totalPages = Math.ceil(displayedCategories.length / ITEMS_PER_PAGE);
     const { success, error } = useCustomToast();
 
-    useEffect(() => {
+    
+    useEffect(() => { 
         const fetchCategories = async () => {
-            try {
-                const response = await http.get<any>("/api/categories/");
-                setCategories(response.payload);
-                setDisplayedCategories(response.payload);
-            } catch (error) {
-                console.log("Error fetching categories:", error);
+          if (!decoded) {
+            return router.push('/');
+          }
+          try {
+            const user = await apiFetch(`/api/users/${decoded.user_id}/`);
+            if (user.is_staff === true) {
+              const categories = await apiFetch("/api/categories/");
+              setCategories(categories);
+              setDisplayedCategories(categories);
+            } else {
+              router.push('/');
             }
+          } catch (err) {
+            console.error('Error fetching categories or user data:', err);
+          }
         };
+      
         fetchCategories();
-    }, []);
+      }, [decoded, router]);
+      
 
     const paginatedCategories = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

@@ -32,8 +32,14 @@ export const apiFetch = async (
       }
       throw new Error(errorData.message || `HTTP Error: ${response.status}`);
     }
+    
 
-    return await response.json();
+    if (response.status === 204) {
+      return null;  
+    }
+
+    const responseData = await response.json();
+    return responseData;
   } catch (error) {
     console.error("API Fetch Error:", error.message || error);
     throw error;

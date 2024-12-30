@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Col, Row, Pagination } from 'antd';
 import Link from 'next/link';
+import { apiFetch } from '../../../../utils/api';
 
 const { Meta } = Card;
 
@@ -25,9 +26,8 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
     const fetchArticles = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/articles/category/${categoryId}/`);
-        const data = await response.json();
-        const activeArticles = data.filter((article) => article.active == true);
+        const data = await apiFetch(`/api/articles/category/${categoryId}/`);
+        const activeArticles = data.filter((article) => article.active === true);
         setArticles(activeArticles);
       } catch (error) {
         console.error('Error fetching articles:', error);
@@ -35,9 +35,10 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
         setLoading(false);
       }
     };
-
+  
     fetchArticles();
   }, [categoryId]);
+  
 
   const totalArticles = articles.length;
   const totalPages = Math.ceil(totalArticles / ITEMS_PER_PAGE);
@@ -65,22 +66,24 @@ const ArticlesByCategory: React.FC<ArticlesByCategoryProps> = ({ categoryId }) =
               lg={6}
               xl={4}
               key={article.id}
-              className="mb-4"
+              className="mb-4 justify-center"
             >
               <Card
-                className="w-full h-full flex flex-col justify-between"
+                className="w-full h-full flex flex-col"
                 cover={
-                  <img
-                    alt={article.title}
-                    src={article.image_url}
-                    className="h-[180px] md:h-[200px] w-full md:w-[500px] object-cover"
-                  />
+                  <Link href={`/articles/${article.id}`}>
+                    <img
+                      alt={article.title}
+                      src={article.image_url}
+                      className="h-[180px] md:h-[200px] w-full md:w-[500px] object-cover"
+                    />
+                  </Link>
                 }
               >
                 <Link href={`/articles/${article.id}`}>
-                  <Meta
-                    title={<div className="break-words">{article.title}</div>}
-                  />
+                  <div className="font-bold align-text-top text-lg hover:text-black">
+                    {article.title}
+                  </div>
                 </Link>
               </Card>
             </Col>

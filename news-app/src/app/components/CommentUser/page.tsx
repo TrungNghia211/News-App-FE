@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { clientSessionToken } from "@/lib/http";
 import jwt from "jsonwebtoken";
+import { apiFetch } from "../../../../utils/api";
+
+
 interface Comment {
     id: string;
     title: string;
@@ -24,28 +27,19 @@ interface Comment {
           console.error("User ID is missing.");
           return;
         }
-  
         try {
-          const commentRes = await fetch(`http://127.0.0.1:8000/api/comments/user/${userId}/`, {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${sessionToken}`,
-            },
-          });
-  
-          const commentData = await commentRes.json();
+          const commentData = await apiFetch(`/api/comments/user/${userId}/`, 
+            "GET", 
+            null, 
+            sessionToken 
+          );
           setComments(commentData.comments);
-          const articlePromises = commentData.comments.map((comment: Comment) =>
-            fetch(`http://127.0.0.1:8000/api/articles/${comment.article}/`, {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${sessionToken}`,
-              },
-            }).then((res) => res.json())
+          const articlePromises = commentData.comments.map((comment) =>
+            apiFetch(`/api/articles/${comment.article}/`, "GET", null, sessionToken)
           );
           const articleResponses = await Promise.all(articlePromises);
-        setArticles(articleResponses.map((response: any) => response));
-  
+          setArticles(articleResponses);
+          
         } catch (error) {
           console.error("Failed to fetch articles and comments:", error);
         }
@@ -55,6 +49,8 @@ interface Comment {
         fetchArticlesAndComments();
       }
     }, [userId, sessionToken]);
+    
+    
   return (
     <div className=" p-4 mb-4">
       <h3 className="text-3xl font-semibold mb-8">Commented Articles</h3>

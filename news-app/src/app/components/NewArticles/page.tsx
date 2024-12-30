@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { apiFetch } from "../../../../utils/api";
 
 interface Article {
   id: number;
@@ -20,24 +21,9 @@ const NewArticles: React.FC = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/articles/all/",
-          {
-            headers: {
-              accept: "application/json",
-              "X-CSRFTOKEN":
-                "6SRJJkQJUrxstBua8JbvrLrn0SqVwuDpu3qDApBrPimiDZLPMrIwEOdv1Qjf6HBV",
-            },
-          }
-        );
-  
-        if (!response.ok) throw new Error("Failed to fetch articles");
-  
-        const data: Article[] = await response.json();
-  
+        const data: Article[] = await apiFetch("/api/articles/all/", "GET", null, null);
         const currentTime = new Date();
         const oneWeekAgo = new Date(currentTime.getTime() - 7 * 24 * 60 * 60 * 1000);
-  
         const filteredArticles = data.filter((article) => {
           const updatedDate = new Date(article.updated_date);
           return article.active === true && updatedDate >= oneWeekAgo;
@@ -47,16 +33,13 @@ const NewArticles: React.FC = () => {
           const dateB = new Date(b.created_date);
           return dateB.getTime() - dateA.getTime(); 
         });
-  
-        setArticles(sortedArticles.slice(0, 5));
+        setArticles(sortedArticles.slice(0, 5)); 
       } catch (error) {
         console.error("Error fetching articles:", error);
       }
     };
-  
     fetchArticles();
   }, []);
-  
 
   return (
     <div className="w-full max-w-screen-sm mx-auto p-4 shadow-lg rounded-lg">
@@ -75,18 +58,7 @@ const NewArticles: React.FC = () => {
               >
                 {article.title}
               </h3>
-              {/* <p
-                className="text-gray-600 text-left hover:cursor-pointer flex-1"
-                onClick={() => router.push(`/articles/${article.id}/`)}
-                dangerouslySetInnerHTML={{
-                  __html:
-                    article.content.length > 40   
-                      ? article.content.slice(0, 40) + "..."
-                      : article.content,
-                }}
-              /> */}
             </div>
-
             <button
               className="md:ml-4 flex-shrink-0"
               onClick={() => router.push(`/articles/${article.id}/`)}
