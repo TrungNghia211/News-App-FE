@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import Header from "../../../../components/Header";
@@ -33,10 +33,8 @@ interface Article {
 
 const ArticlesEdit: React.FC = () => {
   const router = useRouter();
-  const params = useParams();
+  const { id: articleId } = useParams();
   const [loading, setLoading] = useState(false);
-  const articleId = params.id;
-
   const [article, setArticle] = useState<Article | null>(null);
   const [title, setTitle] = useState<string>("");
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -47,15 +45,13 @@ const ArticlesEdit: React.FC = () => {
   const [content, setContent] = useState<string>("");
   const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]);
   const [subOptions, setSubOptions] = useState<SubCategory[]>([]);
-  const {success, error} = useCustomToast();
-
+  const [file, setFile] = useState<File | null>(null);
+  const { success, error } = useCustomToast();
 
   useEffect(() => {
-    const fetchArticle = async () => {
+    const fetchData = async () => {
       try {
         const articleData: Article = await apiFetch(`/api/articles/${articleId}/`);
-        console.log("articleData:", articleData);
-
         setArticle(articleData);
         setTitle(articleData.title);
         setImageUrl(articleData.image_url);
@@ -63,22 +59,15 @@ const ArticlesEdit: React.FC = () => {
         setCategory(articleData.category_id);
         setSubCategory(articleData.subcategory_id);
         setContent(articleData.content);
-      } catch (error) {
-        console.error("Failed to fetch article:", error);
-      }
-    };
 
-    const fetchCategories = async () => {
-      try {
         const categoriesData: Category[] = await apiFetch("/api/categories/");
         setFetchedCategories(categoriesData);
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
+        console.error("Failed to fetch data:", error);
       }
     };
 
-    fetchArticle();
-    fetchCategories();
+    fetchData();
   }, [articleId]);
 
   useEffect(() => {
@@ -101,13 +90,39 @@ const ArticlesEdit: React.FC = () => {
     }
   };
 
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/upload/", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "X-CSRFTOKEN": process.env.CSRF_TOKEN || "" 
+        },
+        body: formData
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+  
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Upload to Cloudinary failed:", error);
+      throw error;
+    }
+  };
+
   const handleEditArticle = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const updatedArticle = {
       title: title || "Untitled Article",
-      image_url: imageUrl || "",
+      image_url: file ? await uploadToCloudinary(file) : imageUrl,
       content: content || "<p>No content available</p>",
       author: article?.author || "Unknown",
       active: true,
@@ -117,16 +132,15 @@ const ArticlesEdit: React.FC = () => {
 
     try {
       const res = await apiFetch(`/api/articles/${articleId}/`, "PUT", updatedArticle);
-
       if (res) {
-        success("Cập Nhật Bài Viết Thành Công !");
+        success("Article updated successfully!");
         router.push("/admin/articles");
       } else {
-        throw new Error("Failed to add article");
+        throw new Error("Failed to update article");
       }
     } catch (error) {
-      console.error("Failed to add article:", error);
-      error("Cập Nhật Bài Viết Thất Bại !");
+      console.error("Error updating article:", error);
+      error("Failed to update article!");
     } finally {
       setLoading(false);
     }
@@ -167,7 +181,7 @@ const ArticlesEdit: React.FC = () => {
             />
           </div>
 
-          {/* <div>
+          <div>
             <label className="block mb-2">Upload Image:</label>
             <div className="flex items-center mb-4">
               <input
@@ -181,9 +195,7 @@ const ArticlesEdit: React.FC = () => {
                   setImageUrl("");
                 }}
               />
-              <label htmlFor="fileUpload" className="ml-2">
-                Choose File
-              </label>
+              <label htmlFor="fileUpload" className="ml-2">Choose File</label>
 
               <input
                 type="radio"
@@ -197,9 +209,7 @@ const ArticlesEdit: React.FC = () => {
                 }}
                 className="ml-4"
               />
-              <label htmlFor="urlUpload" className="ml-2">
-                Enter URL
-              </label>
+              <label htmlFor="urlUpload" className="ml-2">Enter URL</label>
             </div>
 
             {imageSource === "file" ? (
@@ -209,6 +219,7 @@ const ArticlesEdit: React.FC = () => {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    setFile(file);
                     const reader = new FileReader();
                     reader.onloadend = () => setImageUrl(reader.result as string);
                     reader.readAsDataURL(file);
@@ -237,27 +248,8 @@ const ArticlesEdit: React.FC = () => {
                 />
               </div>
             )}
-          </div> */}
-          <div>
-            <label className="block mb-2">Upload Image:</label>
-            <input
-              type="text"
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Enter image URL"
-            />
-            {imageUrl && (
-              <div className="mt-2">
-                <p>Image Preview:</p>
-                <img
-                  src={imageUrl}
-                  alt="Uploaded"
-                  className="mt-2"
-                  style={{ width: "100px" }}
-                />
-              </div>
-            )}
           </div>
+
           <div>
             <label className="block mb-2">Select Category:</label>
             <select
@@ -266,13 +258,14 @@ const ArticlesEdit: React.FC = () => {
               className="w-full p-2 border border-gray-300 rounded"
               required
             >
-              {(fetchedCategories || []).map((cat) => (
+              {fetchedCategories.map((cat) => (
                 <option key={cat.id} value={cat.name}>
                   {cat.name}
                 </option>
               ))}
             </select>
           </div>
+
           <div>
             <label className="block mb-2">Select Subcategory:</label>
             <select
@@ -280,12 +273,9 @@ const ArticlesEdit: React.FC = () => {
               onChange={handleSubCategoryChange}
               className="w-full p-2 border border-gray-300 rounded"
             >
-              {subOptions.length > 0 &&
-                subOptions.map((sub) => (
-                  <option key={sub.id} value={sub.sub}>
-                    {sub.sub}
-                  </option>
-                ))}
+              {subOptions.length > 0 && subOptions.map((sub) => (
+                <option key={sub.id} value={sub.sub}>{sub.sub}</option>
+              ))}
             </select>
           </div>
 
