@@ -8,6 +8,7 @@ import { apiFetch } from "../../../../../utils/api";
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 import useCustomToast from "../../../../../utils/toast";
+import { boolean } from "zod";
 
 interface Category {
   id: number;
@@ -64,36 +65,69 @@ const ArticlesAdd = () => {
     }
   }, [category]);
 
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/upload/", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "X-CSRFTOKEN": "kvX58F70RnVfD4Kxy6J8aTol6QyjoYoFe5zKHrvsnLtzsTbBykn2KYmkT3nua5t1"
+        },
+        body: formData
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+  
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Upload to Cloudinary failed:", error);
+      throw error;
+    }
+  };
+  
   const handleAddArticle = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     try {
+      let imageUrlFinal = imageUrl;
+  
+      if (file) {
+        imageUrlFinal = await uploadToCloudinary(file);  
+        console.log("Cloudinary URL:", imageUrlFinal);
+      }
+  
       const payload = {
         title: title,
-        image_url:
-          file
-            ? await uploadImageToFirebase(file)
-                .then((url) => url)
-                .catch(() => "")
-            : imageUrl,
+        image_url: imageUrlFinal,
         content: content,
         category_id: category?.id || 0,
-        subcategory_id: subCategory?.id || 0,
+        subcategory_id: subCategory?.id || 1,
         author: author,
         active: true,
       };
+  
+      console.log("Payload to send:", payload);
+  
       const res = await apiFetch("/api/articles/", "POST", payload);
+  
       if (res) {
-        success("Thêm Bài Viết Thành Công !");
+        success("Thêm Bài Viết Thành Công!");
         router.push("/admin/articles");
       } else {
         throw new Error("Failed to add article");
       }
     } catch (error) {
       console.error("Failed to add article:", error);
-      error("Thêm Bài Viết Thất Bại !");
+      error("Thêm Bài Viết Thất Bại!");
     }
   };
-
+  
   const handleClose = () => {
     router.push("/admin/articles");
   };
@@ -127,7 +161,7 @@ const ArticlesAdd = () => {
             />
           </div>
 
-          {/* <div>
+          <div>
             <label className="block mb-2">Upload Image:</label>
             <div className="flex items-center mb-4">
               <input
@@ -164,6 +198,8 @@ const ArticlesAdd = () => {
                       setImageUrl(reader.result as string);
                     };
                     reader.readAsDataURL(file);
+                    console.log(file);
+                    
                     setFile(file);
                   }
                 }}
@@ -177,23 +213,6 @@ const ArticlesAdd = () => {
               />
             )}
 
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt="Uploaded"
-                className="mt-2"
-                style={{ width: "100px" }}
-              />
-            )}
-          </div> */}
-          <div>
-            <label className="block mb-2">Upload Image:</label>
-            <input
-              type="text"
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-              placeholder="Enter image URL"
-            />
             {imageUrl && (
               <img
                 src={imageUrl}
