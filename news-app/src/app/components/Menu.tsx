@@ -4,12 +4,10 @@ import http from "@/lib/http";
 import { Category, Subcategory } from "@/types/category";
 import { CaretDownOutlined, MenuOutlined } from "@ant-design/icons";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 export default function Menu() {
 
-    // const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [hoveredCategoryMenu, setHoveredCategoryMenu] = useState<number | null>(null);
     const [hoveredCategoryIndex, setHoveredCategoryIndex] = useState<number | null>(null);
@@ -44,7 +42,7 @@ export default function Menu() {
                             {category.name}
                         </a>
                         {hoveredCategoryIndex === index && (
-                            <div className="absolute z-[1] min-w-[150px] bg-white border">
+                            <div className="absolute z-[1] min-w-[150px] bg-white border rounded-lg">
                                 {category.subcategories.map((subCategory: Subcategory) => (
                                     <Link
                                         key={subCategory.id}

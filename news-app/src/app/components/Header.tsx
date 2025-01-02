@@ -1,15 +1,19 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { Button, Input } from "antd";
+import { useState, useEffect, useContext } from "react";
+import { Button } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import debounce from "lodash.debounce";
-
-const { Search } = Input;
+import { UserContext } from "@/app/AppProvider";
+import { LogOut } from "lucide-react";
+import { clientSessionToken } from "@/lib/http";
 
 const Header = () => {
+
   const router = useRouter();
+  const [dateTime, setDateTime] = useState(null);
+  const { user, setUser } = useContext(UserContext);
+  const [isHoveredProfile, setIsHoveredProfile] = useState<boolean>(false);
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -32,9 +36,6 @@ const Header = () => {
     );
   };
 
-  const [dateTime, setDateTime] = useState<string | null>(null);
-  const [searchValue, setSearchValue] = useState<string>("");
-
   useEffect(() => {
     setDateTime(getCurrentDateTime());
     const interval = setInterval(() => {
@@ -43,39 +44,104 @@ const Header = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const onSearch = debounce((value: string) => {
-    console.log("Search value:", value);
-  }, 500);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-    onSearch(e.target.value);
-  };
-  const handleLoginClick = () => {
-    router.push("/login");
-  };
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', { method: 'POST' });
+      if (response.ok) {
+        setUser(null);
+        sessionStorage.removeItem('user');
+        clientSessionToken.value = null;
+        router.push('/login');
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
 
   return (
-    <header className="bg-white p-3 border-b-2">
+    <header className="p-3 border-b-2">
       <div className="max-w-screen-xl mx-auto flex items-center justify-between">
+
         <div className="flex items-center space-x-6">
-          <h1 className="text-3xl font-bold text-black hover:cursor-pointer" onClick={() => router.push("/")}>
+          <h1 className="text-3xl font-bold text-[#3498db] hover:cursor-pointer" onClick={() => router.push("/")}>
             NEWS
           </h1>
           <span className="text-sm text-gray-500">{dateTime}</span>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            type="default"
-            icon={<UserOutlined />}
-            onClick={handleLoginClick}
-            className="flex items-center space-x-2 text-xl"
-          >
-            Đăng nhập
-          </Button>
+
+        <div className="flex items-center space-x-[30px]">
+          {user?.is_staff === true && (
+            <>
+              <div
+                className="text-xl hover:cursor-pointer hover:underline hover:bg-[#3498db] rounded-md p-[6px]"
+                onClick={() => router.push('/admin/articles/')}
+              >
+                Articles
+              </div>
+              <div
+                className="text-xl hover:cursor-pointer hover:underline hover:bg-[#3498db] rounded-md p-[6px]"
+                onClick={() => router.push('/admin/categories/')}
+              >
+                Categories
+              </div>
+              <div
+                className="flex items-center text-xl relative text-center hover:underline hover:cursor-pointer hover:bg-[#3498db] rounded-md p-[6px]"
+                onMouseEnter={() => setIsHoveredProfile(true)}
+                onMouseLeave={() => setIsHoveredProfile(false)}
+                onClick={() => router.push(`/profile/${user.id}`)}
+              >
+                <div className="mr-1"><UserOutlined /></div>
+                Trang cá nhân
+                {isHoveredProfile && (
+                  <div className="absolute z-30 w-full left-0 top-[41px] rounded-lg">
+                    <Button
+                      icon={<LogOut />}
+                      className="z-[1] hover:underline hover:cursor-pointer text-center w-full text-black rounded-lg"
+                      onClick={handleLogout}
+                    >
+                      Đăng xuất
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+          {user?.is_staff === false && (
+            <div
+              className="flex items-center text-xl relative text-center hover:underline hover:cursor-pointer hover:bg-[#3498db] rounded-md p-[6px]"
+              onMouseEnter={() => setIsHoveredProfile(true)}
+              onMouseLeave={() => setIsHoveredProfile(false)}
+              onClick={() => router.push(`/profile/${user.id}`)}
+            >
+              <div className="mr-1"><UserOutlined /></div>
+              Trang cá nhân
+              {isHoveredProfile && (
+                <div className="absolute z-30 w-full left-0 top-[41px] rounded-lg">
+                  <Button
+                    icon={<LogOut />}
+                    className="z-[1] hover:underline hover:cursor-pointer text-center w-full text-black rounded-lg"
+                    onClick={handleLogout}
+                  >
+                    Đăng xuất
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+          {user === null && (
+            <Button
+              icon={<UserOutlined />}
+              onClick={() => router.push("/login")}
+              className="flex items-center space-x-2 text-xl"
+            >
+              Đăng nhập
+            </Button>
+          )}
         </div>
       </div>
-    </header>
+    </header >
   );
 };
 

@@ -1,62 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { clientSessionToken } from "@/lib/http";
 import { useRouter } from "next/navigation";
 import useCustomToast from "../../../../utils/toast";
-import CommentedList from "@/app/components/CommentUser/page";
+import CommentedList from "@/app/components/UserComment/page";
 import Header from "@/app/components/Header";
 import Menu from "@/app/components/Menu";
 import { apiFetch } from "../../../../utils/api";
-
+import { UserContext } from "@/app/AppProvider";
 
 export default function ProfilePage({ params }) {
+
   const { id } = params;
-  const sessionToken = clientSessionToken.value;
+  // const sessionToken = clientSessionToken.value;
   const router = useRouter();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const {success} = useCustomToast();
-  
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     try {
-  //       const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${sessionToken}`,
-  //         },
-  //       });
+  const { success } = useCustomToast();
+  const { user } = useContext(UserContext);
 
-  //       if (!res.ok) {
-  //         throw new Error("Failed to fetch user data");
-  //       }
-  //       const data = await res.json();
-
-        // setUserData({
-        //   email: data.email || "",
-        //   username: data.username || "",
-        //   phone: data.phone || "",
-        //   birthday: data.birthday || "",
-        //   address: data.address || "",
-        //   description: data.description || "",
-        // });
-  //     } catch (error) {
-  //       alert("Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
-  //       console.error("Error fetching user data:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchUserData();
-  // }, [id, sessionToken]);
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const data = await apiFetch(`/api/users/${id}/`, "GET", null, sessionToken);
-        
+        console.log('sess: ', clientSessionToken.value)
+        const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${clientSessionToken.value}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const data = await res.json();
+
         setUserData({
           email: data.email || "",
           username: data.username || "",
@@ -66,42 +46,56 @@ export default function ProfilePage({ params }) {
           description: data.description || "",
         });
       } catch (error) {
-        alert("Token không hợp lệ hoặc hết hạn. Vui lòng đăng nhập lại.");
         console.error("Error fetching user data:", error.message || error);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchUserData();
-  }, [id, sessionToken]);
-  
-  
+  }, [id, clientSessionToken.value]);
+
+
+  // useEffect(() => {
+  //   if (user) {
+  //     setUserData({
+  //       email: user.email || "",
+  //       username: user.username || "",
+  //       phone: user.phone || "",
+  //       birthday: user.birthday || "",
+  //       address: user.address || "",
+  //       description: user.description || "",
+  //     });
+  //     setLoading(false);
+  //   } else {
+  //     setError("User data not found");
+  //     setLoading(false);
+  //   }
+  // }, [user]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
-  
+    e.preventDefault();
+
     try {
       const res = await apiFetch(
-        `/api/users/${id}/`, 
-        "PUT", 
-        userData, 
-        sessionToken
+        `/api/users/${id}/`,
+        "PUT",
+        userData,
+        clientSessionToken.value
       );
       if (res) {
         success("Thông tin đã được cập nhật thành công!");
         router.push(`/profile/${id}`);
       }
     } catch (error) {
-      console.error("Lỗi khi cập nhật dữ liệu:", error.message || error);
       alert(error.message || "Đã xảy ra lỗi, vui lòng thử lại.");
     }
   };
-  
 
   if (loading) {
     return (
@@ -214,9 +208,9 @@ export default function ProfilePage({ params }) {
         </div>
       </div>
       <div>
-        <CommentedList/>
+        <CommentedList />
       </div>
-      
+
     </>
   );
 }

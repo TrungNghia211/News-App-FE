@@ -1,9 +1,9 @@
 'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -11,11 +11,14 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import http, { clientSessionToken } from "@/lib/http"
-import { LoginResType } from "@/schemaValidations/auth.schema"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import http from "@/lib/http";
+import { LoginResType } from "@/schemaValidations/auth.schema";
+import { useRouter } from "next/navigation";
+import jwt from 'jsonwebtoken';
+import { useContext } from "react";
+import { UserContext } from "@/app/AppProvider";
 
 const formSchema = z.object({
     username: z.string().trim().min(1, "Username is required"),
@@ -25,6 +28,7 @@ const formSchema = z.object({
 export default function LoginForm() {
 
     const router = useRouter();
+    const { setUser } = useContext(UserContext);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -38,8 +42,11 @@ export default function LoginForm() {
         try {
             const result = await http.post<LoginResType>('/api/token/', JSON.stringify(values));
             const resultFromNextServer = await http.post<any>('/api/auth', JSON.stringify(result), { baseUrl: '' });
-            // clientSessionToken.value = resultFromNextServer.payload?.res?.payload?.access;
-            // router.push('/profile');
+            const sessionToken = resultFromNextServer.payload.res.payload.access;
+            const decoded = jwt.decode(sessionToken);
+            const response = await http.get<any>(`/api/users/${decoded.user_id}/`);
+            setUser(response.payload);
+            router.push('/');
         } catch (error) {
             if (error.status === 401) {
                 form.setError('password', {
