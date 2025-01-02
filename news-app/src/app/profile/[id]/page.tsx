@@ -1,77 +1,241 @@
+// "use client";
+
+// import { useContext, useEffect, useState } from "react";
+// import { clientSessionToken } from "@/lib/http";
+// import { useRouter } from "next/navigation";
+// import useCustomToast from "../../../../utils/toast";
+// import CommentedList from "@/app/components/UserComment/page";
+// import Header from "@/app/components/Header";
+// import Menu from "@/app/components/Menu";
+// import { apiFetch } from "../../../../utils/api";
+// import { UserContext } from "@/app/AppProvider";
+
+// export default function ProfilePage({ params }) {
+
+//   const { id } = params;
+//   // const sessionToken = clientSessionToken.value;
+//   const router = useRouter();
+//   const [userData, setUserData] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const { success } = useCustomToast();
+//   const { user } = useContext(UserContext);
+
+//   useEffect(() => {
+//     const fetchUserData = async () => {
+//       try {
+//         console.log('sess: ', clientSessionToken.value)
+//         const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${clientSessionToken.value}`,
+//           },
+//         });
+
+//         if (!res.ok) {
+//           throw new Error("Failed to fetch user data");
+//         }
+//         const data = await res.json();
+
+//         setUserData({
+//           email: data.email || "",
+//           username: data.username || "",
+//           phone: data.phone || "",
+//           birthday: data.birthday || "",
+//           address: data.address || "",
+//           description: data.description || "",
+//         });
+//       } catch (error) {
+//         console.error("Error fetching user data:", error.message || error);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchUserData();
+//   }, [id, clientSessionToken.value]);
+
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setUserData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     try {
+//       const res = await apiFetch(
+//         `/api/users/${id}/`,
+//         "PUT",
+//         userData,
+//         clientSessionToken.value
+//       );
+//       if (res) {
+//         success("Thông tin đã được cập nhật thành công!");
+//         router.push(`/profile/${id}`);
+//       }
+//     } catch (error) {
+//       alert(error.message || "Đã xảy ra lỗi, vui lòng thử lại.");
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="flex justify-center items-center py-6">
+//         <div className="w-12 h-12 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+//       </div>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <div className="p-4">
+//         <h2 className="text-xl font-semibold text-red-500">{error}</h2>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <>
+//       <Header />
+//       <Menu />
+//       <div className="p-4">
+//         <div className="p-4 mb-4">
+//           <h2 className="text-3xl font-semibold mb-4">User Profile</h2>
+//           <form onSubmit={handleSubmit}>
+//             <div className="grid grid-cols-1 gap-4">
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                 <div>
+//                   <label className="block text-sm font-medium mb-1">Username</label>
+//                   <input
+//                     type="text"
+//                     name="username"
+//                     value={userData?.username || ""}
+//                     onChange={handleInputChange}
+//                     placeholder="Enter your username"
+//                     className="border rounded-md w-full p-2"
+//                     required
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium mb-1">Date of Birth</label>
+//                   <input
+//                     type="date"
+//                     name="birthday"
+//                     value={userData?.birthday || ""}
+//                     onChange={handleInputChange}
+//                     className="border rounded-md w-full p-2"
+//                   />
+//                 </div>
+//               </div>
+
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+//                 <div>
+//                   <label className="block text-sm font-medium mb-1">Email</label>
+//                   <input
+//                     type="email"
+//                     name="email"
+//                     value={userData?.email || ""}
+//                     readOnly
+//                     className="border rounded-md w-full p-2"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-medium mb-1">Phone Number</label>
+//                   <input
+//                     type="tel"
+//                     name="phone"
+//                     value={userData?.phone || ""}
+//                     onChange={handleInputChange}
+//                     placeholder="Enter your phone number"
+//                     className="border rounded-md w-full p-2"
+//                   />
+//                 </div>
+//               </div>
+
+//               <div className="mt-4">
+//                 <label className="block text-sm font-medium mb-1">Address</label>
+//                 <input
+//                   type="text"
+//                   name="address"
+//                   value={userData?.address || ""}
+//                   onChange={handleInputChange}
+//                   placeholder="Enter your address"
+//                   className="border rounded-md w-full p-2"
+//                 />
+//               </div>
+
+//               <div className="mt-4">
+//                 <label className="block text-sm font-medium mb-1">About Me</label>
+//                 <textarea
+//                   name="description"
+//                   rows={4}
+//                   value={userData?.description || ""}
+//                   onChange={handleInputChange}
+//                   placeholder="Describe yourself"
+//                   className="border rounded-md w-full p-2"
+//                 />
+//               </div>
+//             </div>
+
+//             <div className="text-right mt-4">
+//               <button
+//                 type="submit"
+//                 className="bg-yellow-400 text-white text-lg px-8 py-2 rounded-md"
+//               >
+//                 Save Profile
+//               </button>
+//             </div>
+//           </form>
+//         </div>
+//       </div>
+//       <div>
+//         <CommentedList />
+//       </div>
+
+//     </>
+//   );
+// }
+
+
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import { clientSessionToken } from "@/lib/http";
 import { useRouter } from "next/navigation";
-import useCustomToast from "../../../../utils/toast";
+// import useCustomToast from "@/utils/toast";
 import CommentedList from "@/app/components/UserComment/page";
 import Header from "@/app/components/Header";
 import Menu from "@/app/components/Menu";
-import { apiFetch } from "../../../../utils/api";
+// import { apiFetch } from "@/utils/api";
 import { UserContext } from "@/app/AppProvider";
+import { clientSessionToken } from "@/lib/http";
+import { apiFetch } from "../../../../utils/api";
 
 export default function ProfilePage({ params }) {
-
   const { id } = params;
-  // const sessionToken = clientSessionToken.value;
   const router = useRouter();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { success } = useCustomToast();
+  // const { success } = useCustomToast();
   const { user } = useContext(UserContext);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        console.log('sess: ', clientSessionToken.value)
-        const res = await fetch(`http://127.0.0.1:8000/api/users/${id}/`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${clientSessionToken.value}`,
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-        const data = await res.json();
-
-        setUserData({
-          email: data.email || "",
-          username: data.username || "",
-          phone: data.phone || "",
-          birthday: data.birthday || "",
-          address: data.address || "",
-          description: data.description || "",
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error.message || error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [id, clientSessionToken.value]);
-
-
-  // useEffect(() => {
-  //   if (user) {
-  //     setUserData({
-  //       email: user.email || "",
-  //       username: user.username || "",
-  //       phone: user.phone || "",
-  //       birthday: user.birthday || "",
-  //       address: user.address || "",
-  //       description: user.description || "",
-  //     });
-  //     setLoading(false);
-  //   } else {
-  //     setError("User data not found");
-  //     setLoading(false);
-  //   }
-  // }, [user]);
+    if (user) {
+      setUserData({
+        email: user.email || "",
+        username: user.username || "",
+        phone: user.phone || "",
+        birthday: user.birthday || "",
+        address: user.address || "",
+        description: user.description || "",
+      });
+      setLoading(false);
+    } else {
+      setError("User data not found");
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -89,7 +253,7 @@ export default function ProfilePage({ params }) {
         clientSessionToken.value
       );
       if (res) {
-        success("Thông tin đã được cập nhật thành công!");
+        // success("Thông tin đã được cập nhật thành công!");
         router.push(`/profile/${id}`);
       }
     } catch (error) {
@@ -210,7 +374,7 @@ export default function ProfilePage({ params }) {
       <div>
         <CommentedList />
       </div>
-
     </>
   );
 }
+
