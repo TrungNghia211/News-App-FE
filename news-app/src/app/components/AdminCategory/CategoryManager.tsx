@@ -73,16 +73,23 @@ export default function CategoryManager() {
             const body = {
                 name: data.name,
                 description: data.description,
-            }
+            };
             const result = await http.put<any>(`/api/categories/${isEditingCategory.id}/`, JSON.stringify(body));
             const updatedCategory = result.payload;
-            setCategories(categories.map(c => c.id === updatedCategory.id ? updatedCategory : c));
+            const updatedCategories = categories.map(c =>
+                c.id === updatedCategory.id ? updatedCategory : c
+            );
+    
+            setCategories(updatedCategories);
+            setDisplayedCategories(updatedCategories);
+    
             setIsEditingCategory(null);
             setCategoryNameError(null);
         } catch (error) {
             setCategoryNameError('Tên danh mục đã tồn tại');
         }
-    }
+    };
+    
 
     const handleDeleteCategory = async (id: number) => {
         const result = await http.delete<any>(`/api/categories/${id}/`);
