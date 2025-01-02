@@ -23,19 +23,20 @@ export default function Articles() {
   const [displayedArticles, setDisplayedArticles] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const router = useRouter();
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(1); 
   const [pageSize] = useState<number>(30);
   const sessionToken = clientSessionToken.value;
   const decoded = jwt.decode(sessionToken);
-  const {success} = useCustomToast();
+  const { success } = useCustomToast();
+  const memoizedDecoded = useMemo(() => decoded, [sessionToken]);
 
   useEffect(() => {
     const fetchUserAndArticles = async () => {
-      if (!decoded) {
+      if (!memoizedDecoded) {
         return router.push("/");
       }
       try {
-        const user = await apiFetch(`/api/users/${decoded.user_id}/`);
+        const user = await apiFetch(`/api/users/${memoizedDecoded.user_id}/`);
         if (user.is_staff === true) {
           const data = await apiFetch("/api/articles/all/");
           const activeArticles = data.filter((article) => article.active === true);
@@ -56,8 +57,7 @@ export default function Articles() {
     };
   
     fetchUserAndArticles();
-  }, [decoded, router, pageSize]);
-  
+  }, [memoizedDecoded, router, pageSize]);
 
   const filteredArticles = useMemo(() => {
     return articles.filter((article) =>
@@ -95,8 +95,8 @@ export default function Articles() {
       setDisplayedArticles(updatedArticles.slice(0, pageSize));
       setIsDeleteModalVisible(false);
       setArticleToDelete(null);
+      setCurrentPage(1); 
       success("Xóa Bài Viết Thành Công !");
-      
     } catch (err) {
       console.error("Error deleting article:", err);
     }
@@ -110,6 +110,12 @@ export default function Articles() {
   const handleEdit = (articleId) => {
     router.push(`/admin/articles/edit/${articleId}`);
   };
+
+  useEffect(() => {
+    const offset = (currentPage - 1) * pageSize;
+    const paginatedArticles = filteredArticles.slice(offset, offset + pageSize);
+    setDisplayedArticles(paginatedArticles);
+  }, [filteredArticles, currentPage, pageSize]);
 
   return (
     <div className="p-4">
