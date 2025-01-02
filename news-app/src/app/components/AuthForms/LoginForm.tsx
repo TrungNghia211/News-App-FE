@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import jwt from 'jsonwebtoken';
 import { useContext } from "react";
 import { UserContext } from "@/app/AppProvider";
+import Link from "next/link";
 
 const formSchema = z.object({
     username: z.string().trim().min(1, "Username is required"),
@@ -88,6 +89,22 @@ export default function LoginForm() {
                             </FormControl>
                             <FormMessage />
                         </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <Link href="/register" className="underline">Đăng ký tài khoản mới</Link>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     )}
                 />
                 <Button className="!mt-[17px] w-full" type="submit">Login</Button>
