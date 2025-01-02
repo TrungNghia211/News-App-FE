@@ -99,7 +99,6 @@ const ArticlesAdd = () => {
   
       if (file) {
         imageUrlFinal = await uploadToCloudinary(file);  
-        console.log("Cloudinary URL:", imageUrlFinal);
       }
   
       const payload = {
@@ -111,9 +110,6 @@ const ArticlesAdd = () => {
         author: author,
         active: true,
       };
-  
-      console.log("Payload to send:", payload);
-  
       const res = await apiFetch("/api/articles/", "POST", payload);
   
       if (res) {
