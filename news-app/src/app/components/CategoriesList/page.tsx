@@ -62,10 +62,10 @@ const CategoriesList = () => {
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-semibold mb-4 ml-5 text-green-500 ">Bài Viết Theo Danh Mục</h2>
+      <h2 className="text-2xl  font-semibold mb-4 ml-5 text-green-500 ">Bài Viết Theo Danh Mục</h2>
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="w-full mb-8 ">
-          <div className="grid grid-cols-3 gap-4 ">
+          <div className="grid 2xl:grid-cols-3 gap-4 xl:grid-cols-1 ">
             {row.map((category) => (
               <div key={category.id} className=" p-4    ">
                 <h3 className="text-2xl mb-8 font-semibold text-center">{category.name}</h3>

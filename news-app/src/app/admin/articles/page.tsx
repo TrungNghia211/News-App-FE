@@ -25,39 +25,28 @@ export default function Articles() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState<number>(1); 
   const [pageSize] = useState<number>(30);
-  const sessionToken = clientSessionToken.value;
-  const decoded = jwt.decode(sessionToken);
-  const { success } = useCustomToast();
-  const memoizedDecoded = useMemo(() => decoded, [sessionToken]);
+  const { success } = useCustomToast();  
 
   useEffect(() => {
     const fetchUserAndArticles = async () => {
-      if (!memoizedDecoded) {
-        return router.push("/");
-      }
       try {
-        const user = await apiFetch(`/api/users/${memoizedDecoded.user_id}/`);
-        if (user.is_staff === true) {
-          const data = await apiFetch("/api/articles/all/");
-          const activeArticles = data.filter((article) => article.active === true);
-          const sortedArticles = activeArticles.sort((a, b) => {
-            const dateA = new Date(a.updated_date);
-            const dateB = new Date(b.updated_date);
-            return dateB - dateA;
-          });
+        const data = await apiFetch("/api/articles/all/");
+        const activeArticles = data.filter((article) => article.active === true);
+        const sortedArticles = activeArticles.sort((a, b) => {
+          const dateA = new Date(a.updated_date);
+          const dateB = new Date(b.updated_date);
+          return dateB - dateA;
+        });
+        setArticles(sortedArticles);
+        setDisplayedArticles(sortedArticles.slice(0, pageSize));
   
-          setArticles(sortedArticles);
-          setDisplayedArticles(sortedArticles.slice(0, pageSize));
-        } else {
-          router.push("/");
-        }
       } catch (err) {
-        console.error("Error fetching user and articles:", err);
+        console.error("Error fetching user and articles:", err);  
       }
     };
   
-    fetchUserAndArticles();
-  }, [memoizedDecoded, router, pageSize]);
+    fetchUserAndArticles();  
+  }, [router, pageSize]); 
 
   const filteredArticles = useMemo(() => {
     return articles.filter((article) =>

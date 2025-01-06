@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import envConfig from "@/config"
+import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
     username: z.string().trim().min(2).max(256),
@@ -33,7 +34,7 @@ const formSchema = z.object({
     })
 
 export default function RegisterForm() {
-
+    const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -59,8 +60,9 @@ export default function RegisterForm() {
                 type: 'manual',
                 message: data.username[0],
             })
+
         } else {
-            console.log(result)
+            router.push('/login');
         }
     }
 
