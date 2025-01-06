@@ -25,7 +25,7 @@ export default function Menu() {
     }, []);
 
     return (
-        <div className="xl:flex xl:min-h-full max-w-screen w-screen xl:justify-center xl:h-[35px] border-b-2">
+        <div className="flex items-center justify-center w-full h-[35px] border-b-2 xl:min-h-full">
             <ul className="flex max-w-5xl items-center justify-between w-full space-x-4 ">
                 {categories.slice(0, 10).map((category, index) => (
                     <li

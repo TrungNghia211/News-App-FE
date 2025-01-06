@@ -43,7 +43,7 @@ const NewArticles: React.FC = () => {
 
   return (
     <div className="w-full max-w-screen-sm mx-auto p-4 shadow-lg rounded-lg">
-      <h2 className="text-3xl h-14 font-bold text-center  flex items-center justify-center bg-yellow-400 text-red-600
+      <h2 className="text-xl h-14 font-bold text-center  flex items-center justify-center bg-yellow-400 text-red-600
         transform transition duration-500 ease-in-out hover:scale-110 hover:text-blue-700
         hover:shadow-lg hover:shadow-blue-400">
         Tin Mới
@@ -53,7 +53,7 @@ const NewArticles: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <div className="flex flex-col justify-between h-full">
               <h3
-                className="text-lg md:text-xl font-semibold cursor-pointer mb-2 text-left"
+                className="text-sm md:text-sm font-semibold cursor-pointer mb-2 text-left"
                 onClick={() => router.push(`/articles/${article.id}/`)}
               >
                 {article.title}
@@ -66,7 +66,7 @@ const NewArticles: React.FC = () => {
               <img
                 alt="avatar"
                 src={article.image_url}
-                className="h-40 object-cover"
+                className="h-28 object-cover"
               />
             </button>
           </div>

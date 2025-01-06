@@ -51,7 +51,7 @@ const Header = () => {
         setUser(null);
         sessionStorage.removeItem('user');
         clientSessionToken.value = null;
-        router.push('/login');
+        router.push('/');
       } else {
         console.error('Logout failed');
       }
@@ -85,6 +85,18 @@ const Header = () => {
                 onClick={() => router.push('/admin/categories/')}
               >
                 Categories
+              </div>
+              <div
+                className="text-xl hover:cursor-pointer hover:underline hover:bg-[#3498db] rounded-md p-[6px]"
+                onClick={() => router.push('/admin/users/')}
+              >
+                User
+              </div>
+              <div
+                className="text-xl hover:cursor-pointer hover:underline hover:bg-[#3498db] rounded-md p-[6px]"
+                // onClick={() => router.push('/admin/categories/')}
+              >
+                Decentralization
               </div>
               <div
                 className="flex items-center text-xl relative text-center hover:underline hover:cursor-pointer hover:bg-[#3498db] rounded-md p-[6px]"

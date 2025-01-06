@@ -60,6 +60,7 @@ export default function CategoryManager() {
             const newCategory = result.payload;
             setCategories(prevCategories => [...prevCategories, newCategory]);
             setIsAddingCategory(false);
+            setDisplayedCategories(prevCategories => [...prevCategories, newCategory])
             const newTotalPages = Math.ceil(categories.length / ITEMS_PER_PAGE);
             setCurrentPage(newTotalPages);
             setCategoryNameError(null);
@@ -94,8 +95,10 @@ export default function CategoryManager() {
     const handleDeleteCategory = async (id: number) => {
         const result = await http.delete<any>(`/api/categories/${id}/`);
         setCategories(categories.filter(c => c.id !== id));
+        setDisplayedCategories(categories.filter(c => c.id !== id))
         if (paginatedCategories.length === 1 && currentPage > 1) {
             setCurrentPage(currentPage - 1);
+            
         }
     };
 
@@ -110,6 +113,11 @@ export default function CategoryManager() {
                 if (result.status === 201) {
                     const newSubcategory = result.payload;
                     setCategories(categories.map(c =>
+                        c.id === categoryId
+                            ? { ...c, subcategories: [...c.subcategories, newSubcategory] }
+                            : c
+                    ));
+                    setDisplayedCategories(categories.map(c =>
                         c.id === categoryId
                             ? { ...c, subcategories: [...c.subcategories, newSubcategory] }
                             : c
@@ -129,6 +137,11 @@ export default function CategoryManager() {
     const handleDeleteSubcategory = async (categoryId: number, subcategoryId: number) => {
         const result = await http.delete<any>(`/api/subcategories/${subcategoryId}/`);
         setCategories(prevCategories => prevCategories.map(c =>
+            c.id === categoryId
+                ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subcategoryId) }
+                : c
+        ));
+        setDisplayedCategories(prevCategories => prevCategories.map(c =>
             c.id === categoryId
                 ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subcategoryId) }
                 : c

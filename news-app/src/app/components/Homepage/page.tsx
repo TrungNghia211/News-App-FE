@@ -63,14 +63,14 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-[0.1rem]">
-        <div className="p-4 rounded-lg border-r-2">
+      <div className="grid 2xl:grid-cols-4 xl:grid-cols-1 gap-[0.1rem] ">
+        <div className="p-4 rounded-lg border-r-2 ">
           <div>
             <NewArticles />
           </div>
         </div>
         <div className="p-4 rounded-lg col-span-2 w-full border-r-2">
-          <div className="w-full max-w-screen-xl mx-auto p-4 shadow-lg rounded-lg p-4">
+          <div className="w-full max-w-screen-xl mx-auto p-4 shadow-lg rounded-lg">
             {relatedArticles.length > 0 ? (
               relatedArticles.map((article) => (
                 <div key={article.id} className="my-4">

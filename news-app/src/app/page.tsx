@@ -4,7 +4,7 @@ import Menu from "@/app/components/Menu";
 
 export default function Home() {
   return (
-    <div>
+    <div className="mx-auto py-3 px-[300px]">
       <Header />
       <Menu />
       <Homepage />
